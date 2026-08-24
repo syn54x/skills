@@ -18,4 +18,3 @@ Glossary for this skills package. Architecture terms (`module`, `interface`, `se
 ## Non-goals (this repo)
 
 - Not an application runtime — skills instruct agents; they are not executed as product code.
-- `prepare-release-notes` and other Ferro-specific skills stay out of this package.

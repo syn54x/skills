@@ -7,7 +7,9 @@ Public [Agent Skills](https://agentskills.io) for coding agents (Cursor, Claude 
 | Skill | Description |
 |-------|-------------|
 | [`coordinate`](coordinate/) | Run a batch of implementation work through sub-agents — research, brief, dispatch, and gate their PRs |
-| [`eli5`](eli5/) | Explains a topic like the user is five and has ADD — tiny sentences, one analogy, then stop |
+| [`adhd`](adhd/) | Explains a topic in the shortest possible form — tiny sentences, lead with the point, then stop |
+| [`eli5`](eli5/) | Explains a complex topic in plain language with one concrete analogy |
+| [`prepare-release-notes`](prepare-release-notes/) | Drafts bloggy GitHub Release highlights from the delta since the last tag and prints the release command — never cuts the release |
 | [`scaffold-python-project`](scaffold-python-project/) | Opinionated Python project bootstrap with uv, prek, ruff, ty, pytest, zensical, GitHub Actions, and optional CLI/API/DB/AI stacks |
 
 ## Install
