@@ -7,6 +7,7 @@ Public [Agent Skills](https://agentskills.io) for coding agents (Cursor, Claude 
 | Skill | Description |
 |-------|-------------|
 | [`coordinate`](coordinate/) | Run a batch of implementation work through sub-agents — research, brief, dispatch, and gate their PRs |
+| [`coordinate-team`](coordinate-team/) | Run a batch of implementation work through Claude Code Agent Teams — research, brief, spawn teammates, and gate their plans and PRs |
 | [`adhd`](adhd/) | Explains a topic in the shortest possible form — tiny sentences, lead with the point, then stop |
 | [`eli5`](eli5/) | Explains a complex topic in plain language with one concrete analogy |
 | [`prepare-release-notes`](prepare-release-notes/) | Drafts bloggy GitHub Release highlights from the delta since the last tag and prints the release command — never cuts the release |
@@ -16,6 +17,7 @@ Public [Agent Skills](https://agentskills.io) for coding agents (Cursor, Claude 
 
 ```bash
 npx skills add syn54x/skills --skill coordinate
+npx skills add syn54x/skills --skill coordinate-team
 npx skills add syn54x/skills --skill scaffold-python-project
 ```
 
