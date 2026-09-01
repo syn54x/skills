@@ -12,6 +12,7 @@ Public [Agent Skills](https://agentskills.io) for coding agents (Cursor, Claude 
 | [`eli5`](eli5/) | Explains a complex topic in plain language with one concrete analogy |
 | [`prepare-release-notes`](prepare-release-notes/) | Drafts bloggy GitHub Release highlights from the delta since the last tag and prints the release command — never cuts the release |
 | [`scaffold-python-project`](scaffold-python-project/) | Opinionated Python project bootstrap with uv, prek, ruff, ty, pytest, zensical, GitHub Actions, and optional CLI/API/DB/AI stacks |
+| [`scaffold-frontend-project`](scaffold-frontend-project/) | Opinionated Vite + React SPA bootstrap with pnpm, Biome, TanStack Router/Query, Tailwind, shadcn/ui, prek, vitest, and GitHub Actions |
 
 ## Install
 
@@ -19,6 +20,7 @@ Public [Agent Skills](https://agentskills.io) for coding agents (Cursor, Claude 
 npx skills add syn54x/skills --skill coordinate
 npx skills add syn54x/skills --skill coordinate-team
 npx skills add syn54x/skills --skill scaffold-python-project
+npx skills add syn54x/skills --skill scaffold-frontend-project
 ```
 
 Global install (available across projects):
