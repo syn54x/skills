@@ -1,6 +1,6 @@
 ---
 name: scaffold-python-project
-description: Scaffolds new Python projects with uv, prek, ruff, ty, pytest, zensical, GitHub Actions (CI, docs deploy, release), pydantic, structlog, ferro-orm for databases, and optional cyclopts CLI, FastAPI/Litestar REST API, Pydantic AI, and Logfire. Use when the user asks to create, bootstrap, or scaffold a new Python project, package, library, CLI tool, or API service.
+description: Scaffolds new Python projects with uv, prek, ruff, ty, pytest, zensical, GitHub Actions (CI, docs deploy, release), pydantic, structlog, ferro-orm for databases, and optional cyclopts CLI, FastAPI/Litestar REST API, Pydantic AI, and Logfire. Use when the user asks to create, bootstrap, or scaffold a new Python project, package, library, CLI tool, or API service — including when the new repo should be configured for Matt Pocock engineering skills.
 ---
 
 # Scaffold Python Project
@@ -58,6 +58,7 @@ When **pypi** is off: omit `publish` / `github-release` from `release.yml` (and 
 - [ ] 6. Substitute placeholders (`<github_owner>`, `<module_name>`, …)
 - [ ] 7. uv sync && prek install && prek install --hook-type commit-msg
 - [ ] 8. Verify = baseline verify ∪ selected feature smokes
+- [ ] 9. setup-matt-pocock-skills (REQUIRED SUB-SKILL)
 ```
 
 ### Step 2 — uv init
@@ -96,6 +97,8 @@ For each selected flag, copy the listed files from [reference.md](reference.md).
 
 Copy from [agent-guides.md](agent-guides.md). Do not paraphrase the I-1 invariant. Substitute `<project-name>` in `docs/agents/design.md`.
 
+Do not create `CLAUDE.md`. Do not pre-seed `docs/agents/issue-tracker.md`, `docs/agents/domain.md`, `docs/agents/triage-labels.md`, or `CONTEXT.md` — those belong to step 9.
+
 ### Step 6 — Placeholders
 
 Substitute `<pypi-name>`, `<module_name>`, `<github_owner>`, `<github_repo>`, `<pypi-package-name>`, author fields, and related tokens everywhere copied from templates.
@@ -112,6 +115,16 @@ uv run prek install --hook-type commit-msg
 
 Run baseline verify, then each selected feature's `verify` cell from the matrix.
 
+### Step 9 — Matt Pocock engineering skills
+
+**REQUIRED SUB-SKILL:** After verify, `cd` into the new project and run `setup-matt-pocock-skills` as if the user had invoked `/setup-matt-pocock-skills` there.
+
+1. Locate `setup-matt-pocock-skills` in the agent's available skills and **Read its `SKILL.md`**. Do not reconstruct it from memory.
+2. Follow that skill in full — explore, ask, draft, confirm, write. Do not shortcut, skip questions, or inline its templates into this skill.
+3. `AGENTS.md` already exists (step 5). The sub-skill **edits** it (adds `## Agent skills`). Still do not create `CLAUDE.md`.
+
+If `setup-matt-pocock-skills` is not installed, skip this step and tell the user to install Matt Pocock's skills and run `/setup-matt-pocock-skills` in the new project.
+
 ## Anti-patterns
 
 - Do not bump versions locally — use `just release` → release workflow
@@ -126,8 +139,12 @@ Run baseline verify, then each selected feature's `verify` cell from the matrix.
 - Do not skip `pydantic-settings` / `settings.py` — always scaffolded
 - Do not skip `observability.py` — always scaffolded
 - Do not point `[project.scripts]` at `:main` — use `:app`
+- Do not inline or rewrite `setup-matt-pocock-skills` templates — read and follow that skill
+- Do not skip step 9 when `setup-matt-pocock-skills` is installed
+- Do not create `CLAUDE.md` during scaffold — `AGENTS.md` is the agent file the sub-skill will edit
 
 ## Additional resources
 
 - Templates: [reference.md](reference.md)
 - Agent guideline templates: [agent-guides.md](agent-guides.md)
+- Engineering-skill config: **REQUIRED SUB-SKILL** `setup-matt-pocock-skills` (step 9)
