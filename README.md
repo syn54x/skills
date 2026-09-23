@@ -41,7 +41,7 @@ Not adopted, and why: CCPM (unmaintained, wrong `gh-sub-issue` syntax), original
 
 | Skill | Description |
 |-------|-------------|
-| [`sdd-setup`](sdd-setup/) | Once per repo: check `gh`, create the readiness and size labels, enable issue types on org repos, write the CLAUDE.md routing block, optionally install the Actions workflows |
+| [`sdd-setup`](sdd-setup/) | Once per repo: install and configure mattpocock/skills if missing, check `gh`, create the readiness and size labels, enable issue types on org repos, write the CLAUDE.md routing block, optionally install the Actions workflows |
 | [`to-tickets-plus`](to-tickets-plus/) | Run `/to-tickets`, then link sub-issues natively, add **Files owned / Interfaces / Test scenarios / Verify**, size them, and pin one plan comment on the epic |
 | [`build-epic`](build-epic/) | Orchestrator: ready queue → layers → parallel-safety check → isolated worker waves (3–5) → fresh review per PR → merge in dependency order → close |
 | [`implement-issue`](implement-issue/) | One worker, one issue, one PR with `Closes #N`; identical locally and inside `claude-code-action` |
@@ -98,6 +98,6 @@ The `sdd` plugin bundles the seven SDD skills with the Claude-only extras: two a
 /plugin install sdd@syn54x-skills
 ```
 
-Then, in each target repo: `/sdd-setup`. For the cloud path, it copies `sdd-implement.yml` and `sdd-review.yml` into `.github/workflows/`; add an `ANTHROPIC_API_KEY` secret or switch the templates to OIDC.
+Then, in each target repo: `/sdd-setup`. It installs and configures mattpocock/skills first if the repo does not have them. For the cloud path, it copies `sdd-implement.yml` and `sdd-review.yml` into `.github/workflows/`; add an `ANTHROPIC_API_KEY` secret or switch the templates to OIDC.
 
 Skills in this repo follow the [Agent Skills](https://agentskills.io) format (`SKILL.md` with YAML frontmatter). The `sdd` plugin manifest lives in `.claude-plugin/`; its Claude-only extras are the root-level `agents/`, `hooks/` and `scripts/` directories, which `npx skills add` ignores.

@@ -1,6 +1,6 @@
 ---
 name: sdd-setup
-description: Configure a repo for the issue-native spec-driven workflow — check the gh version, create the readiness and size labels, enable issue types on org repos, write the CLAUDE.md routing block, and optionally install the GitHub Actions workflows. Run once per repo before build-epic or implement-issue.
+description: Configure a repo for the issue-native spec-driven workflow — install and configure mattpocock/skills if missing, check the gh version, create the readiness and size labels, enable issue types on org repos, write the CLAUDE.md routing block, and optionally install the GitHub Actions workflows. Run once per repo before build-epic or implement-issue.
 disable-model-invocation: true
 ---
 
@@ -8,7 +8,36 @@ disable-model-invocation: true
 
 Configure the repo so specs, plans and progress all live in **GitHub Issues** and the build skills can find them. Prompt-driven: explore, present, confirm, then write.
 
-Run `/setup-matt-pocock-skills` first if it has not been run — it owns the issue tracker choice and the base triage labels. This skill adds what the build side needs on top.
+This skill assumes [mattpocock/skills](https://github.com/mattpocock/skills) is installed and its own setup has run: that setup owns the issue tracker choice and the base triage labels, and this skill adds what the build side needs on top. Step 0 gets the user there if they are not.
+
+## 0. The spine: mattpocock/skills
+
+Check what is available before asking anything:
+
+- Are `to-spec`, `to-tickets`, `tdd`, `grill-with-docs` and `setup-matt-pocock-skills` among your available skills? (In Claude Code they may appear as `mattpocock-skills:<name>` from the plugin, or as bare names from `npx skills add`.)
+- Does `docs/agents/issue-tracker.md` exist in the repo? That file is what `setup-matt-pocock-skills` writes, so its presence means the upstream setup has already run here.
+
+Then:
+
+| Found | Do |
+|---|---|
+| skills present, `docs/agents/issue-tracker.md` present | continue to step 1 |
+| skills present, file missing | invoke `/setup-matt-pocock-skills`, choose **GitHub** as the tracker and keep the default triage labels; when it finishes, continue to step 1 |
+| skills missing | offer the install below; if the user declines, stop and say the SDD skills cannot run without `to-spec` and `to-tickets` |
+
+The install writes into the user's agent directories, so ask before running it and let them pick the scope:
+
+```bash
+npx skills add mattpocock/skills            # this project only (default)
+npx skills add mattpocock/skills -g         # every project
+npx skills add mattpocock/skills --agent '*'  # every detected agent
+```
+
+Claude Code users may prefer the plugin form instead, which is editable in place: `/plugin marketplace add mattpocock/skills` then `/plugin install mattpocock-skills@mattpocock`. Either is fine; do not install both.
+
+After the install, the new skills may not be visible until the session reloads. If `/setup-matt-pocock-skills` is not yet invocable, tell the user to restart the session and run `/sdd-setup` again; do not try to reproduce the upstream setup by hand.
+
+If the harness has no slash commands, "invoke" means: open that skill's `SKILL.md` where it was installed and follow it.
 
 ## 1. Preflight
 
@@ -83,4 +112,4 @@ Then tell the user what to add and do not do it for them:
 
 ## 6. Done
 
-Report in one table: what existed, what was created, what was skipped and why. Point at the next step: `/grill-with-docs` → `/to-spec` → `/to-tickets-plus`, then `/build-epic <epic#>` or a `ready-for-agent` label.
+Report in one table: what existed, what was created, what was skipped and why, including whether step 0 installed or configured mattpocock/skills. Point at the next step: `/grill-with-docs` → `/to-spec` → `/to-tickets-plus`, then `/build-epic <epic#>` or a `ready-for-agent` label.
