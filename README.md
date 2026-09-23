@@ -30,6 +30,7 @@ So the design is a **cherry-pick, not a suite**:
 
 - **mattpocock/skills is the spine** and stays untouched, so `npx skills update` keeps working. `/to-spec` already writes the epic; `/to-tickets` already cuts tracer-bullet sub-issues with blocking edges.
 - **What was worth stealing became ticket sections**, not plugins: Compound Engineering's file ownership and verification contract, Superpowers' interfaces list, no-placeholder rule, fresh implementer and reviewer per task, CCPM's marker-based idempotent comments, gh-aw's sub-issue closer. All of it is `gh` and prose, so it runs the same under Claude Code, Codex, Cursor, or a shell.
+- **Review effort follows the diff.** A slice PR into an integration branch gets one fresh reviewer with two verdicts; a persona panel on every slice would be nine times the cost for noise. The PR to `main` is large, final and cross-slice, so it gets `review-panel`: our own panel, built from the best of Compound Engineering's persona selection and adversarial reviewer, Anthropic's confidence gate and history pass, Superpowers' calibration, and mattpocock's standards axis, but reading our ticket contracts and ADRs and speaking our severity vocabulary.
 - **Readiness is derived, never a status label**: open + no open blockers + unassigned + `ready-for-agent`. Claiming is assigning yourself. A status field that agents set is a status field that lies.
 - **Worktree waves, not Agent Teams.** Teammates get no worktree isolation, the task tools are gated on an experimental flag, and a team costs several times the tokens of a wave. Every suite that tried teams either retreated to `Agent(isolation: "worktree")` or kept teams for discussion only.
 - **Size decides the runtime.** Small tickets go to `claude-code-action` on a label; medium and large run as local waves; XL escalates to a dynamic workflow. Same `implement-issue` skill in every case.
@@ -43,7 +44,8 @@ Not adopted, and why: CCPM (unmaintained, wrong `gh-sub-issue` syntax), original
 | [`to-tickets-plus`](skills/to-tickets-plus/) | Run `/to-tickets`, then link sub-issues natively (across repos when a ticket belongs elsewhere), add **Files owned / Interfaces / Test scenarios / Verify**, size them, and pin one plan comment on the epic |
 | [`build-epic`](skills/build-epic/) | Orchestrator: ready queue → layers → parallel-safety check → isolated worker waves (3–5) → fresh review per PR → merge in dependency order → close. Multi-repo epics get one integration branch per repo |
 | [`implement-issue`](skills/implement-issue/) | One worker, one issue, one PR with `Closes #N`; identical locally and inside `claude-code-action` |
-| [`review-pr`](skills/review-pr/) | Fresh reviewer per PR: re-runs Verify, separate **spec** and **quality** verdicts, one fix round, then `ready-for-human` |
+| [`review-pr`](skills/review-pr/) | Slice gate. Fresh reviewer per PR: re-runs Verify, separate **spec** and **quality** verdicts, one fix round, then `ready-for-human` |
+| [`review-panel`](skills/review-panel/) | Main gate. Once per epic, on the PR to `main`: `review-pr`'s spec and Coherence verdicts plus a persona panel (correctness, testing, maintainability, standards and invariants incl. ADRs, history; security, reliability, adversarial, data-migration, API-contract when warranted), one schema, one confidence gate, one report |
 | [`sync-progress`](skills/sync-progress/) | Idempotent progress comments under `<!-- sdd-progress -->`; claim and unclaim by assignment |
 | [`close-epic`](skills/close-epic/) | All sub-issues closed → summary comment with ticket → PR table and Learnings → close the epic |
 
@@ -53,8 +55,8 @@ Not adopted, and why: CCPM (unmaintained, wrong `gh-sub-issue` syntax), original
 |---|---|---|---|---|
 | **S** | one context window, ≤ 3 files | label `ready-for-agent` | cloud: `claude-code-action` (`sdd-implement.yml`) | `sdd-review.yml` on the PR |
 | **M** | needs its plan sections; 1–2 workers | `/build-epic` or `/implement-issue` | local worker in its own worktree | fresh reviewer subagent |
-| **L** / epic | 3+ sub-issues, cross-cutting | `/build-epic` | local waves, 3–5 workers, worktree each | reviewer per PR |
-| **XL** | 8+ independent sub-issues | `/build-epic --workflow` | dynamic workflow (Claude Code, `ultracode`) | scripted verify → merge order |
+| **L** / epic | 3+ sub-issues, cross-cutting | `/build-epic` | local waves, 3–5 workers, worktree each | reviewer per slice PR; `review-panel` on the PR to `main` |
+| **XL** | 8+ independent sub-issues | `/build-epic --workflow` | dynamic workflow (Claude Code, `ultracode`) | scripted verify → merge order; `review-panel` on the PR to `main` |
 
 Dispatch is harness-agnostic: `skills/build-epic/references/harness-dispatch.md` gives the concrete call for Claude Code (`Agent` + `isolation: "worktree"`, Agent Teams flag **unset**), Codex (subagent per worktree), Cursor (background agent per worktree), and a sequential fallback for anything else. Everything below the dispatch line is `gh` + prose and identical across tools.
 

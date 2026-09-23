@@ -8,6 +8,8 @@ disable-model-invocation: true
 
 Two verdicts, kept apart: **spec** (does the diff do what the sub-issue says?) and **quality** (is it code the repo wants to keep?). A PR can pass one and fail the other; the fix goes back to the author either way. The reviewer never edits code.
 
+This is the **slice** gate: one PR into an integration branch, one fresh reviewer. The PR that takes the integration branch to `main` gets `/review-panel` instead.
+
 Usage: `/review-pr <pr# | PR URL>`
 
 Use the URL when the epic spans repos; `gh pr view`, `gh pr diff` and `gh pr checkout` all accept it.
@@ -92,4 +94,4 @@ Update the sub-issue's progress comment (`sync-progress`): status `verify-passed
 
 ## Full-epic review
 
-When `build-epic` asks for the integration-branch PR to be gated, run the same two verdicts once over the whole diff, with the **epic body** as the spec instead of a sub-issue. Add a third section, **Coherence**: do the slices agree with each other on the interfaces they shared? In a multi-repo epic there is one such PR per repo; review each, and in Coherence check the cross-repo contracts against the *other* repo's integration branch (the frontend's client calls against the backend's routes as merged), since that is the only place the two sides meet before production.
+When `build-epic` asks for the integration-branch PR to be gated, run the same two verdicts once over the whole diff, with the **epic body** as the spec instead of a sub-issue. Add a third section, **Coherence**: do the slices agree with each other on the interfaces they shared? This mode is normally invoked by `/review-panel`, which wraps it with a persona panel for the PR to `main`; the spec and Coherence verdicts stay here so one skill owns "does this match the spec". In a multi-repo epic there is one such PR per repo; review each, and in Coherence check the cross-repo contracts against the *other* repo's integration branch (the frontend's client calls against the backend's routes as merged), since that is the only place the two sides meet before production.
