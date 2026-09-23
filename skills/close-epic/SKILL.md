@@ -20,18 +20,20 @@ gh issue view "$EPIC" --json state,subIssuesSummary,subIssues \
 
 - `open` is non-empty → stop. Report the open tickets and their assignees; the epic is not done.
 - `state` is already `CLOSED` → stop; nothing to do.
-- Also check that the integration-branch PR (if any) has merged to `main`: `gh pr list --search "head:feat/<slug>" --state merged`. If it has not, say so and ask whether to close anyway; the default is **no**.
+- Also check that the integration-branch PR (if any) has merged to `main`: `gh pr list --search "head:feat/<slug>" --state merged`. In a multi-repo epic, check **every** repo named in the plan comment (`gh pr list -R owner/repo …`). If any has not merged, say so and ask whether to close anyway; the default is **no**.
 
 ## 2. Collect
 
 For each sub-issue, the PR that closed it:
 
 ```bash
-for N in $(gh issue view "$EPIC" --json subIssues --jq '.subIssues.nodes[].number'); do
-  gh issue view "$N" --json number,title,closedByPullRequestsReferences \
-    --jq '"\(.number)\t\(.title)\t\(.closedByPullRequestsReferences | map("#"+(.number|tostring)) | join(", "))"'
+for URL in $(gh issue view "$EPIC" --json subIssues --jq '.subIssues.nodes[].url'); do
+  gh issue view "$URL" --json number,title,url,closedByPullRequestsReferences \
+    --jq '"\(.url)\t\(.title)\t\(.closedByPullRequestsReferences | map(.url) | join(", "))"'
 done
 ```
+
+URLs rather than numbers, so a multi-repo epic's table is unambiguous.
 
 Read each sub-issue's progress comment and each PR's review for anything flagged `DONE_WITH_CONCERNS`, anything that went to `ready-for-human`, and any plan edge that was added mid-build.
 
@@ -43,13 +45,14 @@ Upsert on the epic under `<!-- sdd-summary -->` (see `sync-progress`):
 <!-- sdd-summary -->
 ## Done
 
-| Ticket | PR | Notes |
-|---|---|---|
-| #101 add invoice status column | #55 | — |
-| #102 invoice events | #56 | went to ready-for-human once (flaky fixture), fixed in #56 |
-| #103 create invoice endpoint | #57 | — |
+| Repo | Ticket | PR | Notes |
+|---|---|---|---|
+| pinch-backend | #101 add invoice status column | #55 | — |
+| pinch-backend | #102 invoice events | #56 | went to ready-for-human once (flaky fixture), fixed in #56 |
+| pinch-backend | #103 create invoice endpoint | #57 | — |
+| pinch-frontend | #104 invoice UI | #31 | — |
 
-Integration branch `feat/invoices` merged to `main` in #60.
+Integration branch `feat/invoices`: pinch-backend merged to `main` in #60, pinch-frontend in #33. (Drop the Repo column for a single-repo epic.)
 
 ## Learnings
 

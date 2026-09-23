@@ -2,6 +2,8 @@
 
 Run over the set of **ready** tickets before every wave. Input: each ticket's `## Files owned` and `## Interfaces` sections plus its `blockedBy` links. Output: the tickets that may run concurrently in this wave, and any edges to add.
 
+In a multi-repo epic, sections 1, 2 and 4 run **per repo** (paths in different repos never collide); section 3 runs **across repos**.
+
 ## 1. File overlap
 
 Build the map path → tickets from every `Files owned` list, expanding globs against the current tree. Keep the `Create` / `Modify` / `Test` tag on each entry.
@@ -31,6 +33,7 @@ For every `Consumes` line in a ticket's `## Interfaces`:
 - The producing ticket it names must be in an earlier layer. If the `blockedBy` link is missing, add `gh issue edit <consumer> --add-blocked-by <producer>`.
 - The name must appear in that producer's `Produces` list with the same signature. A mismatch is a plan bug: fix the ticket bodies before dispatch, since two workers would otherwise code against different names.
 - Two ready tickets that both `Produce` the same name, or both modify the same interface → conflict, same resolution as file overlap.
+- **Cross-repo pair** (producer in the backend, consumer in the frontend): the edge is not enough. The consumer's Consumes line carries an *Available when* clause; the consumer is ready only when that is true on the producer repo's integration branch (route deployed to the preview or runnable locally, spec regenerated, client published). Check it before dispatch and say what you checked in the wave table.
 
 ## 4. Wide refactors
 

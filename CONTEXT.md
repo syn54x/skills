@@ -22,6 +22,7 @@ Glossary for this skills package. Architecture terms (`module`, `interface`, `se
 | **Claim** | Assigning yourself to a sub-issue. Removes it from the ready queue; undone by unclaiming. |
 | **Verify block** | The fenced commands in a sub-issue's `## Verify`; green means done. Recorded on the commit as `git notes --ref=sdd-verify`. |
 | **Size ladder** | `size:S` → cloud (`claude-code-action`); `size:M`/`L` → local waves; XL → dynamic workflow. |
+| **Multi-repo epic** | An epic whose sub-issues live in more than one repo (e.g. a frontend epic with backend tickets). Tickets are identified by URL; each repo gets its own integration branch, worktrees and PRs; cross-repo blockers must be merged **and available** (API deployed, client generated) before the consumer is ready. |
 | **Harness dispatch** | The one line of `build-epic` that differs per tool; `references/harness-dispatch.md` holds the concrete calls. |
 
 ## Non-goals (this repo)

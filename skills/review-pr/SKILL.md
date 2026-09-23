@@ -8,7 +8,9 @@ disable-model-invocation: true
 
 Two verdicts, kept apart: **spec** (does the diff do what the sub-issue says?) and **quality** (is it code the repo wants to keep?). A PR can pass one and fail the other; the fix goes back to the author either way. The reviewer never edits code.
 
-Usage: `/review-pr <pr#>`
+Usage: `/review-pr <pr# | PR URL>`
+
+Use the URL when the epic spans repos; `gh pr view`, `gh pr diff` and `gh pr checkout` all accept it.
 
 ## 1. Fresh eyes
 
@@ -39,7 +41,7 @@ Against the sub-issue body only. Ignore how nice the code is. Classify each gap 
 - Every **acceptance criterion** is met and has a test that would fail without the change.
 - Every **Test scenario** line has a corresponding test; a scenario with no test is a spec failure even if the code happens to work.
 - **Files owned** respected; anything outside it is declared in the PR body with a reason you accept.
-- **Interfaces**: every **Produces** line exists with exactly that signature (names, types, events, routes), and every **Consumes** line is used by the published name, not a local alias. A drift here breaks a sibling ticket.
+- **Interfaces**: every **Produces** line exists with exactly that signature (names, types, events, routes), and every **Consumes** line is used by the published name, not a local alias. A drift here breaks a sibling ticket, possibly in another repo: for a cross-repo **Produces** (a route, a schema), check the contract against the consuming ticket's Consumes line, not just the local tests.
 - **Out of scope** items from the epic are not touched.
 - Verify is green on the PR head.
 - Something you cannot verify from the diff alone (it lives in unchanged code, or spans tickets) is reported as **Cannot verify** next to the verdict, for the orchestrator to check, not a reason to widen the search.
@@ -90,4 +92,4 @@ Update the sub-issue's progress comment (`sync-progress`): status `verify-passed
 
 ## Full-epic review
 
-When `build-epic` asks for the integration-branch PR to be gated, run the same two verdicts once over the whole diff, with the **epic body** as the spec instead of a sub-issue. Add a third section, **Coherence**: do the slices agree with each other on the interfaces they shared?
+When `build-epic` asks for the integration-branch PR to be gated, run the same two verdicts once over the whole diff, with the **epic body** as the spec instead of a sub-issue. Add a third section, **Coherence**: do the slices agree with each other on the interfaces they shared? In a multi-repo epic there is one such PR per repo; review each, and in Coherence check the cross-repo contracts against the *other* repo's integration branch (the frontend's client calls against the backend's routes as merged), since that is the only place the two sides meet before production.

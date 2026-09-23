@@ -6,8 +6,6 @@ Public [Agent Skills](https://agentskills.io) for coding agents (Cursor, Claude 
 
 | Skill | Description |
 |-------|-------------|
-| [`coordinate`](skills/coordinate/) | Run a batch of implementation work through sub-agents — research, brief, dispatch, and gate their PRs |
-| [`coordinate-team`](skills/coordinate-team/) | Run a batch of implementation work through Claude Code Agent Teams — research, brief, spawn teammates, and gate their plans and PRs |
 | [`adhd`](skills/adhd/) | Explains a topic in the shortest possible form — tiny sentences, lead with the point, then stop |
 | [`eli5`](skills/eli5/) | Explains a complex topic in plain language with one concrete analogy |
 | [`prepare-release-notes`](skills/prepare-release-notes/) | Drafts bloggy GitHub Release highlights from the delta since the last tag and prints the release command — never cuts the release |
@@ -42,8 +40,8 @@ Not adopted, and why: CCPM (unmaintained, wrong `gh-sub-issue` syntax), original
 | Skill | Description |
 |-------|-------------|
 | [`sdd-setup`](skills/sdd-setup/) | Once per repo: install and configure mattpocock/skills if missing, check `gh`, create the readiness and size labels, enable issue types on org repos, write the CLAUDE.md routing block, optionally install the Actions workflows |
-| [`to-tickets-plus`](skills/to-tickets-plus/) | Run `/to-tickets`, then link sub-issues natively, add **Files owned / Interfaces / Test scenarios / Verify**, size them, and pin one plan comment on the epic |
-| [`build-epic`](skills/build-epic/) | Orchestrator: ready queue → layers → parallel-safety check → isolated worker waves (3–5) → fresh review per PR → merge in dependency order → close |
+| [`to-tickets-plus`](skills/to-tickets-plus/) | Run `/to-tickets`, then link sub-issues natively (across repos when a ticket belongs elsewhere), add **Files owned / Interfaces / Test scenarios / Verify**, size them, and pin one plan comment on the epic |
+| [`build-epic`](skills/build-epic/) | Orchestrator: ready queue → layers → parallel-safety check → isolated worker waves (3–5) → fresh review per PR → merge in dependency order → close. Multi-repo epics get one integration branch per repo |
 | [`implement-issue`](skills/implement-issue/) | One worker, one issue, one PR with `Closes #N`; identical locally and inside `claude-code-action` |
 | [`review-pr`](skills/review-pr/) | Fresh reviewer per PR: re-runs Verify, separate **spec** and **quality** verdicts, one fix round, then `ready-for-human` |
 | [`sync-progress`](skills/sync-progress/) | Idempotent progress comments under `<!-- sdd-progress -->`; claim and unclaim by assignment |
@@ -67,7 +65,6 @@ Leave Superpowers, Compound Engineering and similar suites **uninstalled in targ
 ### As skills (any agent)
 
 ```bash
-npx skills add syn54x/skills --skill coordinate
 npx skills add syn54x/skills --skill scaffold-python-project
 npx skills add syn54x/skills --skill scaffold-frontend-project
 
@@ -80,13 +77,13 @@ npx skills add mattpocock/skills          # the spine: to-spec, to-tickets, tdd,
 Global install (available across projects):
 
 ```bash
-npx skills add syn54x/skills --skill coordinate -g
+npx skills add syn54x/skills --skill build-epic -g
 ```
 
 Install for all detected agents:
 
 ```bash
-npx skills add syn54x/skills --skill coordinate --agent '*'
+npx skills add syn54x/skills --skill build-epic --agent '*'
 ```
 
 ### As a plugin (Claude Code, Cursor, Codex)

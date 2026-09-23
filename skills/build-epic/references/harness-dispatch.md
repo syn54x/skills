@@ -19,6 +19,7 @@ Agent(
 ```
 
 - The worktree is created from the current checkout, so **switch to the integration branch before dispatching**. The worker then creates `sdd/<N>-<slug>` from it.
+- **Ticket in another repo:** `isolation: "worktree"` isolates the repo you are standing in, not the ticket's. Omit it for that worker and put the worktree in the brief instead: `git -C <path to that repo's checkout> worktree add ../<repo>-<N> -b sdd/<N>-<slug> origin/<integration-branch>`, then work there. One `Agent` call per ticket regardless of repo; the wave still runs concurrently.
 - Check `.claude/worktrees/` is gitignored before the first wave; the harness puts per-agent worktrees there.
 - Do not pass a permission `mode` to the worker; the user's configured permissions apply.
 - `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` **must be unset**. Worktree waves and Agent Teams are mutually exclusive in a session: teammates do not get worktree isolation, the task tools are gated on the flag, and a team costs several times the tokens of a wave. Check with `echo $CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` before the first wave; if it is set, stop and tell the user rather than mixing the two.
@@ -37,7 +38,7 @@ Delegate to a subagent, in parallel for every ticket in the wave:
   "git worktree add ../<repo>-<N> -b sdd/<N>-<slug> <integration-branch>; cd there; <brief>"
 ```
 
-Codex subagents do not share your context, so the brief must be complete. Collect results from each subagent's final message; the PR link is the deliverable. For the fix round, delegate again to the same subagent if the harness keeps it addressable; otherwise start a fresh one with the findings appended to the brief.
+Codex subagents do not share your context, so the brief must be complete. For a ticket in another repo, the `git worktree add` line runs against that repo's checkout path from the brief. Collect results from each subagent's final message; the PR link is the deliverable. For the fix round, delegate again to the same subagent if the harness keeps it addressable; otherwise start a fresh one with the findings appended to the brief.
 
 ## Cursor
 
@@ -46,7 +47,7 @@ Install the `syn54x-skills` plugin (`/add-plugin syn54x-skills` once the marketp
 One background agent per ticket, each in its own worktree (ask for worktree isolation explicitly; Cursor subagents share the checkout by default):
 
 - Start a background agent from the integration branch with the brief as its task.
-- Cursor creates the worktree; the agent creates `sdd/<N>-<slug>` inside it.
+- Cursor creates the worktree; the agent creates `sdd/<N>-<slug>` inside it. For a ticket in another repo, open that repo's checkout as the workspace for that background agent, or have the agent create the worktree from the path in the brief.
 - Watch the background-agent panel for the heartbeat; the PR each agent opens is the deliverable.
 - Fix round: reply in that agent's thread with the reviewer's findings.
 
@@ -61,7 +62,7 @@ claude --worktree sdd-<N>            # Claude Code creates the worktree on branc
 git worktree add ../<repo>-<N> -b sdd/<N>-<slug> <integration-branch> && cd ../<repo>-<N>
 ```
 
-Then run `/implement-issue <N>` in that checkout with the brief as context. Gate the PR, merge, recompute the frontier, and take the next ticket. The wave plan still holds; only the concurrency is gone.
+Then run `/implement-issue <url>` in that checkout with the brief as context. For a ticket in another repo, run the `git worktree add` against that repo's checkout. Gate the PR, merge, recompute the frontier, and take the next ticket. The wave plan still holds; only the concurrency is gone.
 
 ## Cleanup
 

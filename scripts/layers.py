@@ -2,10 +2,11 @@
 """layers.py — group an epic's sub-issues into dependency layers.
 
 Input (stdin): JSON lines as printed by `ready.sh <epic#> --all`, or any objects with
-`number` and `openBlockers` (list of issue numbers). Closed blockers must already be
-filtered out (ready.sh does that).
+`url` (or `number`) and `openBlockers` (list of issue URLs, or numbers). Closed blockers
+must already be filtered out (ready.sh does that). URLs keep multi-repo epics unambiguous.
 
-Output: JSON `{"layers": [[101, 102], [103], [104]], "cycle": [..]}`; layer n holds every
+Output: JSON `{"layers": [[<id>, <id>], [<id>], …], "cycle": [..]}` where <id> is the ticket's
+url if present, else its number; layer n holds every
 ticket whose open blockers all sit in layers < n. Tickets left over after no layer can be
 formed are in a cycle (or blocked by an issue outside the epic) and are listed in `cycle`.
 
@@ -18,15 +19,19 @@ import json
 import sys
 
 
-def layers(tickets: list[dict]) -> tuple[list[list[int]], list[int]]:
-    numbers = {t["number"] for t in tickets}
+def ident(t: dict):
+    return t.get("url") or t["number"]
+
+
+def layers(tickets: list[dict]) -> tuple[list[list], list]:
+    ids = {ident(t) for t in tickets}
     # Blockers outside the epic still block, but can never be "placed"; keep them as edges.
-    blockers = {t["number"]: set(t.get("openBlockers") or []) for t in tickets}
-    placed: set[int] = set()
-    result: list[list[int]] = []
-    remaining = set(numbers)
+    blockers = {ident(t): set(t.get("openBlockers") or []) for t in tickets}
+    placed: set = set()
+    result: list[list] = []
+    remaining = set(ids)
     while remaining:
-        layer = sorted(n for n in remaining if blockers[n] <= placed)
+        layer = sorted((n for n in remaining if blockers[n] <= placed), key=str)
         if not layer:
             break
         result.append(layer)

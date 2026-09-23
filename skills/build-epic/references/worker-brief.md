@@ -3,8 +3,9 @@
 The brief is the **only** context a worker gets. Conversation history, the plan comment, the other tickets: none of it reaches the worker unless it is in the brief. Fill every slot; a brief with a blank is not dispatched.
 
 ```markdown
-You are implementing sub-issue #<N> of epic #<EPIC> in <owner/repo>.
-Invoke `/implement-issue <N>` and follow it. This brief is the context that skill assumes.
+You are implementing sub-issue <issue URL> of epic <epic URL>.
+Start in the checkout at <absolute path of this ticket's repo>; the ticket, its branch and its PR all live in <owner/repo> and nowhere else.
+Invoke `/implement-issue <issue URL>` and follow it. This brief is the context that skill assumes.
 
 ## Ticket (verbatim)
 
@@ -24,7 +25,8 @@ Invoke `/implement-issue <N>` and follow it. This brief is the context that skil
 
 ## Mechanics
 
-- Integration branch: `<feat/slug>`. Fork `sdd/<N>-<slug>` from it; PR into it.
+- Integration branch: `<feat/slug>` in <owner/repo>. Fork `sdd/<N>-<slug>` from it; PR into it.
+- Cross-repo inputs you consume: <what, where it is reachable from this checkout (preview URL, local service, regenerated client), and how to confirm it — or "none">.
 - Commit as you go; conventional commit messages; the last commit before the PR is the one Verify ran on.
 - Open the PR with `Closes #<N>` in the body. Do not merge.
 - Progress: one comment on #<N> under `<!-- sdd-progress -->`, rewritten in place (see the `sync-progress` skill).

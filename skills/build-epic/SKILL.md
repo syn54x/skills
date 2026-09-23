@@ -22,7 +22,15 @@ gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/$E
 
 Stop and say why if: the epic is closed; it has no sub-issues (run `/to-tickets-plus` first); the plan comment is missing (same fix); or the routing block from `/sdd-setup` is absent from `CLAUDE.md`/`AGENTS.md`.
 
-Read the plan comment and the epic body once. Read the project's laws (`CLAUDE.md`, `AGENTS.md`, `CONTEXT.md`, ADRs) once. You should be able to write every brief without opening another file.
+**Which repos?** Sub-issues may live in more than one repo (a frontend epic with backend tickets):
+
+```bash
+gh issue view "$EPIC" --json subIssues --jq '[.subIssues.nodes[].repository.nameWithOwner] | unique'
+```
+
+More than one → **multi-repo mode**. You need a local checkout of every repo listed. Default: sibling directories named after the repo (`../pinch-backend` next to `../pinch-frontend`); if one is missing, ask for its path or clone it. Every repo must have run `/sdd-setup` (labels, routing block). From here on, identify tickets by **URL**, never by bare number: `gh issue view`, `gh issue edit` and `gh pr view` all accept URLs, and a bare `#12` is ambiguous across repos.
+
+Read the plan comment and the epic body once. Read each repo's laws (`CLAUDE.md`, `AGENTS.md`, `CONTEXT.md`, ADRs) once. You should be able to write every brief without opening another file.
 
 ## 1. Integration branch
 
@@ -35,22 +43,25 @@ git push -u origin "$BRANCH"
 
 Every worker PR targets this branch. You merge into it. When the epic is done, one PR takes it to `main` and that merge is the user's. A one-ticket epic (size M standalone) may skip the integration branch and target `main`; then the final merge is also the user's.
 
-Record the branch name in the plan comment if it is not there.
+**Multi-repo:** one integration branch **per repo that has a sub-issue**, same name in each, created from that repo's default branch inside its checkout (`git -C ../pinch-backend switch -c "$BRANCH" origin/main`). A brief never crosses a repo boundary: a worker gets one ticket in one repo.
+
+Record the branch name (and, in multi-repo mode, the list of repos) in the plan comment if it is not there.
 
 ## 2. Ready queue
 
 Readiness is **derived**, never read from a status label: open, every blocker closed, unassigned, labelled `ready-for-agent`.
 
 ```bash
-REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
-for N in $(gh issue view "$EPIC" --json subIssues --jq '.subIssues.nodes[] | select(.state=="OPEN") | .number'); do
-  gh issue view "$N" --json number,title,body,labels,assignees,blockedBy \
+for URL in $(gh issue view "$EPIC" --json subIssues --jq '.subIssues.nodes[] | select(.state=="OPEN") | .url'); do
+  gh issue view "$URL" --json number,title,url,body,labels,assignees,blockedBy \
     --jq 'select((.assignees|length)==0)
         | select([.labels[].name] | index("ready-for-agent"))
         | select(([.blockedBy.nodes[] | select(.state=="OPEN")] | length)==0)
-        | {number,title,size:([.labels[].name] | map(select(startswith("size:"))) | first // "size:?")}'
+        | {number,title,url,size:([.labels[].name] | map(select(startswith("size:"))) | first // "size:?")}'
 done
 ```
+
+The URL carries the repo, so this loop is the same in single- and multi-repo mode.
 
 Tickets that are open but still blocked form the later layers; tickets assigned to someone are in flight; tickets without `ready-for-agent` are not yours. If the queue is empty and nothing is in flight but sub-issues remain open, the plan has a cycle or a missing label: report it and stop.
 
@@ -58,7 +69,7 @@ If installed as the Claude Code plugin, `${CLAUDE_PLUGIN_ROOT}/scripts/ready.sh 
 
 ## 3. Parallel safety check
 
-Before a wave, run the check in [references/parallel-safety-check.md](references/parallel-safety-check.md) over the ready tickets' **Files owned** and **Interfaces**. Two ready tickets that touch the same file, the same migration series, a shared lockfile or a producer/consumer interface pair do not run together: add the missing `--add-blocked-by` edge (and note it in the plan comment) or pick one for this wave and hold the other.
+Before a wave, run the check in [references/parallel-safety-check.md](references/parallel-safety-check.md) over the ready tickets' **Files owned** and **Interfaces**. Two ready tickets that touch the same file, the same migration series, a shared lockfile or a producer/consumer interface pair do not run together: add the missing `--add-blocked-by` edge (and note it in the plan comment) or pick one for this wave and hold the other. File overlap is checked **per repo**; interface pairs are checked **across repos** too, since an API route produced in the backend and consumed in the frontend is the commonest cross-repo edge.
 
 ## 4. Wave plan, then approval
 
@@ -72,7 +83,7 @@ For each ticket in the wave:
 
 1. Claim: `gh issue edit "$N" --add-assignee @me`.
 2. Write the brief from [references/worker-brief.md](references/worker-brief.md). The brief is the ticket body verbatim plus the laws, the branch mechanics, and the report format. Workers get nothing from this conversation, so the brief is complete or the worker fails.
-3. Dispatch the brief to **one isolated worker per ticket, in its own worktree branched from the integration branch, with the whole wave running concurrently**. The concrete call depends on the harness: see [references/harness-dispatch.md](references/harness-dispatch.md). The worker runs `/implement-issue <N>` inside that worktree.
+3. Dispatch the brief to **one isolated worker per ticket, in its own worktree of that ticket's repo, branched from that repo's integration branch, with the whole wave running concurrently**. The concrete call depends on the harness: see [references/harness-dispatch.md](references/harness-dispatch.md). The worker runs `/implement-issue <url>` inside that worktree. In multi-repo mode the brief names the checkout the worker starts from; a worker never guesses which repo a ticket belongs to.
 
 Then upsert the wave comment on the epic under `<!-- sdd-wave -->` (see `sync-progress`): wave number, tickets, worker names, started-at.
 
@@ -98,9 +109,13 @@ Then run `/review-pr <pr#>` for its PR. That skill dispatches a fresh reviewer, 
 
 Merges move the frontier. After each merge, recompute the ready queue (step 2) and dispatch the newly unblocked tickets as the next wave.
 
+**Cross-repo blockers.** A ticket blocked by a ticket in another repo is ready only when the blocking PR is merged onto **that repo's** integration branch **and** whatever the consumer needs from it actually exists: the OpenAPI spec published, the client regenerated, the preview environment or local backend running the new route, e2e pointed at it. The GitHub link closing is not the gate; the brief for the consumer names what must be available, and you check it before dispatch.
+
 ## 7. Close-out
 
 When every sub-issue is closed, run `/close-epic <epic#>`: it posts the summary comment, the `## Learnings`, and closes the epic. Then open the integration-branch PR to `main`, gate the full diff once as a whole with `/review-pr`, and hand the merge to the user.
+
+**Multi-repo:** one integration-branch PR **per repo**, each gated as a whole, handed to the user in dependency order (usually backend before frontend, so the API exists before the UI that calls it lands). Say explicitly which merges depend on which.
 
 Report with one table: ticket → tier → PR → state (merged / ready-for-human / open), plus anything cut, deferred, or edited in the plan.
 
@@ -114,3 +129,4 @@ More than ~8 independent tickets, or the user wants scripted verify → merge or
 - Every comment you write sits under a marker and is rewritten in place.
 - One team primitive per session: worktree waves and Agent Teams are mutually exclusive. This skill uses worktree waves; leave the Agent Teams flag unset.
 - You do not write code. You do not merge to `main`.
+- In multi-repo mode, tickets are URLs, briefs are single-repo, and a cross-repo blocker is cleared by availability, not by a closed link.

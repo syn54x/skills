@@ -8,21 +8,25 @@ disable-model-invocation: true
 
 One worker, one issue, one PR. You are given an issue number; everything else you need is in that issue and in the repo's laws. You do not merge, you do not touch other tickets, and you do not dispatch subagents.
 
-Usage: `/implement-issue <N>`
+Usage: `/implement-issue <N | issue URL>`
+
+A bare number means "in the repo I am standing in". A URL names the repo explicitly; use it whenever the epic spans repos. Every `gh issue` command below accepts either, so `$N` may be a URL throughout.
 
 ## 1. Read and check readiness
 
 ```bash
-N=103
-gh issue view "$N" --json number,title,body,state,labels,assignees,parent,blockedBy
+N=103                                   # or https://github.com/owner/pinch-backend/issues/103
+gh issue view "$N" --json number,title,url,body,state,labels,assignees,parent,blockedBy
 gh issue view "$N" --comments
 ```
+
+Confirm you are standing in a checkout of the **ticket's** repo: the `url` field's `owner/repo` must equal `gh repo view --json nameWithOwner --jq .nameWithOwner`. If it does not, stop and report; the PR must be opened in the repo the ticket lives in, so that `Closes #N` closes it.
 
 The issue must be **open**, labelled `ready-for-agent`, have **no open blockers** (`blockedBy.nodes[] | select(.state=="OPEN")` is empty), and be **unassigned or assigned to you**. Anything else: stop and report which condition failed. Do not "just start".
 
 The body must carry `## What to build`, `## Acceptance criteria`, `## Files owned` (Create / Modify / Test), `## Interfaces` (Consumes / Produces), `## Test scenarios` and `## Verify`. A missing or placeholder section (`TBD`, empty, "add appropriate error handling", "similar to #N") means the ticket is not buildable: add `needs-info`, remove `ready-for-agent`, write one progress comment saying what is missing, and stop.
 
-Read the parent epic body once for the decisions that bind you (`## Implementation Decisions`, `## Testing Decisions`, `## Out of Scope`, as `to-spec` writes them). Read `CLAUDE.md`/`AGENTS.md`, `CONTEXT.md` and any ADR that touches the files you own.
+Read the parent epic body once for the decisions that bind you (`## Implementation Decisions`, `## Testing Decisions`, `## Out of Scope`, as `to-spec` writes them); the parent may live in another repo, so use `gh issue view "$(gh issue view "$N" --json parent --jq .parent.url)"`. Read `CLAUDE.md`/`AGENTS.md`, `CONTEXT.md` and any ADR that touches the files you own.
 
 ## 2. Claim
 
@@ -48,7 +52,7 @@ Determine where you are:
 
 Work only inside **Files owned** (its Create, Modify and Test paths). If the slice genuinely needs a file outside that list, you may touch it, but say so in the PR body under **Outside Files owned** with the reason; the reviewer decides whether that is scope creep.
 
-Use `/tdd` if it is installed; otherwise the same loop by hand: failing test → minimal code → green → refactor. Start from the ticket's **Test scenarios**: one test per line, in the order given, and add any case you discover under the same category headings in the PR body. Follow the in-repo pattern the brief names. Keep the **Produces** signatures in **Interfaces** exactly as the ticket states them; another ticket is coded against those names. Import what you **Consume** by the names the producing ticket published; if a name differs in the merged code, stop and report rather than adapt silently.
+Use `/tdd` if it is installed; otherwise the same loop by hand: failing test → minimal code → green → refactor. Start from the ticket's **Test scenarios**: one test per line, in the order given, and add any case you discover under the same category headings in the PR body. Follow the in-repo pattern the brief names. Keep the **Produces** signatures in **Interfaces** exactly as the ticket states them; another ticket, possibly in another repo, is coded against those names. Import what you **Consume** by the names the producing ticket published; if a name differs in the merged code, stop and report rather than adapt silently. A **Consumes** line from another repo carries an *Available when* clause: if that thing is not reachable from your checkout (the route 404s, the client method is missing), you are `BLOCKED`, not creative.
 
 Run the type checker and the single test file you are working in often; run the full suite once, at the end, before Verify. Commit as you go with conventional messages. Do not squash history yourself; the merge does that.
 

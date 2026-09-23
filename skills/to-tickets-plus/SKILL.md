@@ -23,6 +23,17 @@ gh issue view "$EPIC" --json subIssues --jq '.subIssues.nodes[] | "\(.number)\t\
 
 If `to-tickets` wrote local files instead (the repo is configured for local markdown), stop: this workflow needs a real tracker.
 
+**Tickets that belong in another repo.** A frontend epic often has backend tickets. `to-tickets` creates everything in the epic's repo, so for each ticket whose Files owned live elsewhere, recreate it where the code is and retire the misplaced one:
+
+```bash
+EPIC_URL=$(gh issue view "$EPIC" --json url --jq .url)
+gh issue create -R owner/pinch-backend --title "<same title>" --body-file /tmp/body.md \
+  --label ready-for-agent --parent "$EPIC_URL"          # --type Task in org mode
+gh issue close "$OLD" --reason "not planned" --comment "Moved to <new url>; it belongs in pinch-backend."
+```
+
+Sub-issues and blocked-by links work across repos under the same owner, and every `gh issue` command accepts a URL, so from here on refer to cross-repo tickets by URL. The ticket's `Files owned` are relative to **its own** repo; a ticket never lists paths in two repos, since that is two tickets. Each repo involved must have run `/sdd-setup`.
+
 ## 2. Link natively
 
 For each sub-issue, make the relationships **native** rather than prose, so the ready queue can be computed by `gh`:
@@ -71,7 +82,7 @@ pnpm typecheck
 Rules:
 
 - **Files owned** is the parallel-safety contract. `Modify` and `Test` paths must not appear in two tickets of the same wave; two tickets may each *create* different files in the same directory. If a path collides, merge the tickets or add a `--add-blocked-by` edge. Directories are allowed (`src/billing/**`) but shrink the frontier, so prefer files.
-- **Interfaces** is how a worker learns the names its neighbours use, because it sees only its own ticket. **Consumes** lists what this ticket relies on from earlier tickets, with the producing ticket number; **Produces** lists exact names, parameter and return types, events and routes that later tickets rely on, with the consuming ticket number. Every Consumes line must have a matching `blockedBy` link to its producer.
+- **Interfaces** is how a worker learns the names its neighbours use, because it sees only its own ticket. **Consumes** lists what this ticket relies on from earlier tickets, with the producing ticket number; **Produces** lists exact names, parameter and return types, events and routes that later tickets rely on, with the consuming ticket number. Every Consumes line must have a matching `blockedBy` link to its producer. Across repos, reference the ticket as `owner/repo#N` and state the contract, not the code: the route and its request/response shape, the event and payload, the generated-client method name. Add an **Available when** clause ("backend PR merged to `feat/<slug>` and preview deployed", "OpenAPI regenerated into `web/src/api`"), because a cross-repo consumer is ready only when the producer is reachable, not merely closed.
 - **Test scenarios** are what the worker turns into tests, one line each, prefixed Happy path / Edge case / Error path / Integration. Include only the categories that apply. A ticket with no behavioural change says `Test expectation: none — <reason>` rather than leaving the section empty.
 - **Verify** is fenced, runnable from the repo root, and green means done. The worker runs it before opening the PR and the reviewer runs it again. No "manually check that…" lines.
 - **No placeholders.** Any of these means the ticket is not ready: `TBD`, `TODO`, `?`, an empty section; "add appropriate error handling / validation / edge cases"; "write tests for the above" with no scenarios; "similar to #N" instead of the content; a name in Interfaces that no ticket defines; an acceptance criterion that describes what to do without saying how it is checked. Remove `ready-for-agent`, add `needs-info`, and tell the user what is missing.
@@ -112,15 +123,19 @@ Compute the dependency layers from the native links and upsert **one** comment o
 **Constraints:** <stack, conventions, anything the epic fixes: from the epic's Implementation decisions>
 **Integration branch:** `feat/<slug>` (created by build-epic)
 
-| Layer | Ticket | Size | Blocked by | Files owned (C/M) |
-|---|---|---|---|---|
-| 0 | #101 add invoice status column | S | — | C: `db/migrations/…`; M: `src/billing/schema.ts` |
-| 0 | #102 invoice events | S | — | C: `src/events/invoice.ts` |
-| 1 | #103 create invoice endpoint | M | #101, #102 | M: `src/billing/invoice.ts`, … |
-| 2 | #104 invoice UI | M | #103 | M: `web/src/invoices/**` |
+| Layer | Repo | Ticket | Size | Blocked by | Files owned (C/M) |
+|---|---|---|---|---|---|
+| 0 | pinch-backend | #101 add invoice status column | S | — | C: `db/migrations/…`; M: `src/billing/schema.ts` |
+| 0 | pinch-backend | #102 invoice events | S | — | C: `src/events/invoice.ts` |
+| 1 | pinch-backend | #103 create invoice endpoint | M | #101, #102 | M: `src/billing/invoice.ts`, … |
+| 2 | pinch-frontend | #104 invoice UI | M | pinch-backend#103 | M: `src/invoices/**` |
+
+**Repos:** pinch-frontend (epic), pinch-backend. **Integration branch:** `feat/invoices` in each.
 
 Layer *n* contains every ticket whose blockers all sit in layers < *n*. Layer 0 is the initial ready queue.
 ```
+
+The Repo column and the Repos line are omitted for a single-repo epic.
 
 Optional: if the epic body lacks a `## Spec deltas` section (ADDED / MODIFIED / REMOVED behaviours), offer to add one so the epic doubles as the change record. Do not rewrite anything else in the epic; `to-spec` owns it.
 

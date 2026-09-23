@@ -22,11 +22,15 @@ The marker is the **first line** of the comment body. Nothing else identifies th
 ## Upsert
 
 ```bash
-ISSUE=123
+ISSUE=123                            # or an issue URL; see below
 MARKER='<!-- sdd-progress -->'
 BODY_FILE=/tmp/progress.md          # first line must be the marker
 
-REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+# Resolve repo + number from a URL, else from the current checkout.
+case "$ISSUE" in
+  https://github.com/*) REPO=$(printf '%s' "$ISSUE" | sed -E 's#https://github.com/([^/]+/[^/]+)/issues/.*#\1#'); ISSUE=${ISSUE##*/} ;;
+  *) REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner) ;;
+esac
 COMMENT_ID=$(gh api "repos/$REPO/issues/$ISSUE/comments" --paginate \
   --jq "[.[] | select(.body | startswith(\"$MARKER\"))] | first | .id // empty")
 
