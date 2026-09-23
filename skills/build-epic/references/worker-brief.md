@@ -30,7 +30,6 @@ Invoke `/implement-issue <issue URL>` and follow it. This brief is the context t
 - Commit as you go; conventional commit messages; the last commit before the PR is the one Verify ran on.
 - Open the PR with `Closes #<N>` in the body. Do not merge.
 - Progress: one comment on #<N> under `<!-- sdd-progress -->`, rewritten in place (see the `sync-progress` skill).
-- GitHub account: <none | `<account>` — run `export GH_TOKEN="$(gh auth token -h github.com -u <account>)"` before any `gh` call>.
 - Secrets / env this slice needs: <list, or "none">. If anything listed is missing, stop and report; do not improvise.
 
 ## Report

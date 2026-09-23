@@ -53,8 +53,6 @@ gh repo view --json nameWithOwner,owner --jq '{repo: .nameWithOwner, ownerType: 
 
 Also check: does `CLAUDE.md` or `AGENTS.md` exist? Does either already contain `<!-- sdd-routing -->`? Is `.github/workflows/` present?
 
-If `gh auth status` lists **more than one account**, note which one owns this repo; step 4a pins it.
-
 ## 2. Labels
 
 Idempotent (`--force` updates colour and description if the label exists):
@@ -100,31 +98,6 @@ Write the block from [routing-block.md](routing-block.md) into the agent instruc
 
 Show the user the rendered block before writing. The block **disables competing planners** on purpose: with mattpocock's `to-spec` owning the spec and `to-tickets-plus` owning the plan, a second brainstorming or plan-writing skill produces plan files that nobody reads. Leave Superpowers, Compound Engineering and similar suites uninstalled in this repo; if they are installed globally, the block tells the agent not to route through them.
 
-## 4a. Pin the GitHub account (only when `gh` has several logins)
-
-With two accounts logged in, git on macOS authenticates as whatever account is *active* in `gh`, because the system `osxkeychain` helper reads the keychain entry that `gh auth switch` rewrites. A worker or a hook that runs while the other account is active then fails with `Repository not found` or a 403, and the failure looks like a missing repo. Workers, hooks and cloud runners never see a shell's `direnv`, so the pin has to live in the repo and in the routing block.
-
-Ask which account owns this repo, then:
-
-```bash
-ACCOUNT=0x054
-# Repo-local credential helper. The blank entry first: helper config is additive across scopes,
-# and without it the system osxkeychain helper still answers first.
-git config credential.helper ''
-git config --add credential.helper \
-  '!f() { [ "$1" = get ] && { echo username='"$ACCOUNT"'; echo "password=$(gh auth token -h github.com -u '"$ACCOUNT"')"; }; }; f'
-```
-
-No token lands on disk; the helper asks `gh` at fetch time. Verify with the *other* account active: `git fetch` must still succeed.
-
-That covers `git`. The `gh` CLI follows the active account regardless, and `GH_TOKEN` outranks it, so the routing block records the account and every SDD skill exports the token before its first `gh` call (see the block). Optionally also write an `.envrc` for humans in a shell, and remind them to run `direnv allow`:
-
-```bash
-export GH_TOKEN="$(gh auth token -h github.com -u 0x054)"
-```
-
-In a **multi-repo** epic, pin every repo; the orchestrator's `GH_TOKEN` applies to all of them, so they must belong to the same account.
-
 ## 5. GitHub Actions (optional)
 
 Ask whether the user wants the **cloud path** for `size:S` tickets. If yes, copy both templates from [workflows/](workflows/) into `.github/workflows/`:
@@ -139,4 +112,4 @@ Then tell the user what to add and do not do it for them:
 
 ## 6. Done
 
-Report in one table: what existed, what was created, what was skipped and why, including whether step 0 installed or configured mattpocock/skills and whether step 4a pinned an account. Point at the next step: `/grill-with-docs` → `/to-spec` → `/to-tickets-plus`, then `/build-epic <epic#>` or a `ready-for-agent` label.
+Report in one table: what existed, what was created, what was skipped and why, including whether step 0 installed or configured mattpocock/skills. Point at the next step: `/grill-with-docs` → `/to-spec` → `/to-tickets-plus`, then `/build-epic <epic#>` or a `ready-for-agent` label.

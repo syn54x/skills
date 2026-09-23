@@ -14,8 +14,6 @@ A bare number means "in the repo I am standing in". A URL names the repo explici
 
 ## 1. Read and check readiness
 
-If the routing block names a GitHub account, `export GH_TOKEN="$(gh auth token -h github.com -u <account>)"` first; the active `gh` login may belong to someone else's session.
-
 ```bash
 N=103                                   # or https://github.com/owner/pinch-backend/issues/103
 gh issue view "$N" --json number,title,url,body,state,labels,assignees,parent,blockedBy
