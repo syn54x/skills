@@ -1,0 +1,108 @@
+---
+name: build-epic
+description: Orchestrate an epic issue to completion — compute the ready queue from native sub-issue and blocked-by links, dispatch isolated workers in waves of 3–5, gate every PR with a fresh reviewer, merge in dependency order, and close the epic. Use for size M/L epics; pass --workflow for XL.
+disable-model-invocation: true
+---
+
+# Build Epic
+
+You are the **orchestrator**. You read issues, compute the frontier, brief and dispatch workers, gate their PRs, and keep the epic's bookkeeping honest. You never edit source. Everything you know about the work comes from GitHub, not from this conversation, so a fresh session can pick up where you stopped.
+
+Usage: `/build-epic <epic#> [--max-workers N] [--workflow]`
+
+## 0. Preflight
+
+```bash
+EPIC=42
+gh --version                                          # 2.94+
+gh issue view "$EPIC" --json number,title,state,labels,subIssuesSummary
+gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/$EPIC/comments" --paginate \
+  --jq '[.[] | select(.body | startswith("<!-- sdd-plan -->"))] | length'
+```
+
+Stop and say why if: the epic is closed; it has no sub-issues (run `/to-tickets-plus` first); the plan comment is missing (same fix); or the routing block from `/sdd-setup` is absent from `CLAUDE.md`/`AGENTS.md`.
+
+Read the plan comment and the epic body once. Read the project's laws (`CLAUDE.md`, `AGENTS.md`, `CONTEXT.md`, ADRs) once. You should be able to write every brief without opening another file.
+
+## 1. Integration branch
+
+```bash
+BRANCH="feat/$(gh issue view "$EPIC" --json title --jq '.title | ascii_downcase | gsub("[^a-z0-9]+";"-") | .[0:40]')"
+git fetch origin
+git switch -c "$BRANCH" origin/main 2>/dev/null || git switch "$BRANCH"
+git push -u origin "$BRANCH"
+```
+
+Every worker PR targets this branch. You merge into it. When the epic is done, one PR takes it to `main` and that merge is the user's. A one-ticket epic (size M standalone) may skip the integration branch and target `main`; then the final merge is also the user's.
+
+Record the branch name in the plan comment if it is not there.
+
+## 2. Ready queue
+
+Readiness is **derived**, never read from a status label: open, every blocker closed, unassigned, labelled `ready-for-agent`.
+
+```bash
+REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+for N in $(gh issue view "$EPIC" --json subIssues --jq '.subIssues.nodes[] | select(.state=="OPEN") | .number'); do
+  gh issue view "$N" --json number,title,body,labels,assignees,blockedBy \
+    --jq 'select((.assignees|length)==0)
+        | select([.labels[].name] | index("ready-for-agent"))
+        | select(([.blockedBy.nodes[] | select(.state=="OPEN")] | length)==0)
+        | {number,title,size:([.labels[].name] | map(select(startswith("size:"))) | first // "size:?")}'
+done
+```
+
+Tickets that are open but still blocked form the later layers; tickets assigned to someone are in flight; tickets without `ready-for-agent` are not yours. If the queue is empty and nothing is in flight but sub-issues remain open, the plan has a cycle or a missing label: report it and stop.
+
+If installed as the Claude Code plugin, `${CLAUDE_PLUGIN_ROOT}/scripts/ready.sh <epic#>` prints the same queue as JSON and `layers.py` prints the layers. The loop above is the portable form.
+
+## 3. Parallel safety check
+
+Before a wave, run the check in [references/parallel-safety-check.md](references/parallel-safety-check.md) over the ready tickets' **Files owned** and **Interfaces**. Two ready tickets that touch the same file, the same migration series, a shared lockfile or a producer/consumer interface pair do not run together: add the missing `--add-blocked-by` edge (and note it in the plan comment) or pick one for this wave and hold the other.
+
+## 4. Wave plan, then approval
+
+Present the wave as chat text, one table: ticket → size → tier → files owned → held-back reason (if any). Tier by task shape, never by vendor model name: mid tier for a well-specified, single-subsystem ticket with an in-repo pattern to imitate; ceiling tier for cross-cutting, schema, or design-judgment work, and for any ticket that already bounced once.
+
+Wait for approval on the **first** wave. Later waves that follow the plan launch without a fresh ask; a re-bundle, a new edge or a tier change comes back for review. Max workers per wave: `--max-workers`, default 4, never more than 5.
+
+## 5. Claim and dispatch
+
+For each ticket in the wave:
+
+1. Claim: `gh issue edit "$N" --add-assignee @me`.
+2. Write the brief from [references/worker-brief.md](references/worker-brief.md). The brief is the ticket body verbatim plus the laws, the branch mechanics, and the report format. Workers get nothing from this conversation, so the brief is complete or the worker fails.
+3. Dispatch the brief to **one isolated worker per ticket, in its own worktree branched from the integration branch, with the whole wave running concurrently**. The concrete call depends on the harness: see [references/harness-dispatch.md](references/harness-dispatch.md). The worker runs `/implement-issue <N>` inside that worktree.
+
+Then upsert the wave comment on the epic under `<!-- sdd-wave -->` (see `sync-progress`): wave number, tickets, worker names, started-at.
+
+### Heartbeat
+
+While workers run, report one line per worker whenever you surface: ticket → last known state (from the issue's progress comment, pushed refs, open PRs, or the harness's agent list). Never read a worker's transcript; never invent a state. A worker with no signal is "no update since dispatch".
+
+## 6. Gate each PR
+
+When a worker reports, run `/review-pr <pr#>` for its PR. That skill dispatches a fresh reviewer, runs the ticket's Verify block, and returns two verdicts: **spec** and **quality**.
+
+- Both pass → merge into the integration branch under the project's merge law (squash unless the law says otherwise). The merge closes the sub-issue via `Closes #N`.
+- Either fails → the reviewer's findings go back to the **same worker** (resume it by name; it holds the context). One fix round, then re-gate from the top.
+- Fails twice → label `ready-for-human`, unclaim, leave the PR open, and move on. Do not fix it yourself beyond a trivial mechanical nit.
+
+Merges move the frontier. After each merge, recompute the ready queue (step 2) and dispatch the newly unblocked tickets as the next wave.
+
+## 7. Close-out
+
+When every sub-issue is closed, run `/close-epic <epic#>`: it posts the summary comment, the `## Learnings`, and closes the epic. Then open the integration-branch PR to `main`, gate the full diff once as a whole with `/review-pr`, and hand the merge to the user.
+
+Report with one table: ticket → tier → PR → state (merged / ready-for-human / open), plus anything cut, deferred, or edited in the plan.
+
+## Escalation: `--workflow`
+
+More than ~8 independent tickets, or the user wants scripted verify → merge ordering, is XL work. Instead of dispatching by hand, emit a dynamic-workflow script from [references/workflow-template.js](references/workflow-template.js), filled in with the epic's tickets and layers, and run it on a harness that has one (Claude Code: the `Workflow` tool; the user must opt in with "ultracode" or "run a workflow"). The script performs steps 5–6 per layer; you still do steps 0–4 and 7.
+
+## Guardrails
+
+- Readiness comes from links and assignees, never from a status label.
+- Every comment you write sits under a marker and is rewritten in place.
+- One team primitive per session: worktree waves and Agent Teams are mutually exclusive. This skill uses worktree waves; leave the Agent Teams flag unset.
+- You do not write code. You do not merge to `main`.

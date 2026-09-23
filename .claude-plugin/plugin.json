@@ -1,0 +1,30 @@
+{
+  "name": "sdd",
+  "version": "0.1.0",
+  "description": "Issue-native spec-driven development for Claude Code: epic = spec, sub-issues = plan, worktree worker waves, fresh reviewer per PR. Bundles the syn54x SDD skills with Claude-only agents, hooks and scripts.",
+  "author": {
+    "name": "Taylor",
+    "url": "https://github.com/syn54x"
+  },
+  "homepage": "https://github.com/syn54x/skills",
+  "repository": "https://github.com/syn54x/skills",
+  "license": "MIT",
+  "keywords": [
+    "sdd",
+    "spec-driven",
+    "github-issues",
+    "sub-issues",
+    "worktree",
+    "orchestration",
+    "code-review"
+  ],
+  "skills": [
+    "./sdd-setup",
+    "./to-tickets-plus",
+    "./build-epic",
+    "./implement-issue",
+    "./review-pr",
+    "./sync-progress",
+    "./close-epic"
+  ]
+}

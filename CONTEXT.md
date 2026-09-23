@@ -14,7 +14,17 @@ Glossary for this skills package. Architecture terms (`module`, `interface`, `se
 | **Feature flag** | Optional matrix row selected in discovery. Python: `cli`, `api`, `database`, `logfire`, `docs`, `pypi`, `mattpocock`. Frontend: `e2e`, `api`, `mattpocock`. |
 | **Observability facade** | Python only — always-scaffolded `observability.py`; Logfire is an optional adapter behind the same interface. |
 | **Verify** | Baseline gate plus per-flag smoke probes from the matrix `verify` column. |
+| **Epic** | The spec: one GitHub issue (type `Epic` on org repos) written by `to-spec`. Its body is the human-readable spec; its `<!-- sdd-plan -->` comment is the plan. |
+| **Sub-issue** | One tracer-bullet ticket under an epic, linked natively (`--parent`, `--blocked-by`). Carries **Files owned**, **Verify**, **Interfaces**. |
+| **Ready queue** | Sub-issues that are open + no open blockers + unassigned + `ready-for-agent`. Derived by `gh`, never read from a status label. |
+| **Layer** | Sub-issues whose blockers all sit in earlier layers. Layer 0 is the initial ready queue. |
+| **Wave** | One concurrent dispatch of 3–5 workers over the current ready queue, one worktree each. |
+| **Claim** | Assigning yourself to a sub-issue. Removes it from the ready queue; undone by unclaiming. |
+| **Verify block** | The fenced commands in a sub-issue's `## Verify`; green means done. Recorded on the commit as `git notes --ref=sdd-verify`. |
+| **Size ladder** | `size:S` → cloud (`claude-code-action`); `size:M`/`L` → local waves; XL → dynamic workflow. |
+| **Harness dispatch** | The one line of `build-epic` that differs per tool; `references/harness-dispatch.md` holds the concrete calls. |
 
 ## Non-goals (this repo)
 
 - Not an application runtime — skills instruct agents; they are not executed as product code.
+- No plan files. Specs, plans and progress live in GitHub Issues; the SDD skills never write `docs/plans` or `docs/specs`.

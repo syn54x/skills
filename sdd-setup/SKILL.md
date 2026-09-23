@@ -1,0 +1,86 @@
+---
+name: sdd-setup
+description: Configure a repo for the issue-native spec-driven workflow — check the gh version, create the readiness and size labels, enable issue types on org repos, write the CLAUDE.md routing block, and optionally install the GitHub Actions workflows. Run once per repo before build-epic or implement-issue.
+disable-model-invocation: true
+---
+
+# SDD Setup
+
+Configure the repo so specs, plans and progress all live in **GitHub Issues** and the build skills can find them. Prompt-driven: explore, present, confirm, then write.
+
+Run `/setup-matt-pocock-skills` first if it has not been run — it owns the issue tracker choice and the base triage labels. This skill adds what the build side needs on top.
+
+## 1. Preflight
+
+```bash
+gh --version                      # need 2.94+ for --parent / --blocked-by / --type
+gh auth status
+gh repo view --json nameWithOwner,owner --jq '{repo: .nameWithOwner, ownerType: .owner.type}'
+```
+
+- `gh` older than 2.94 → stop and tell the user to upgrade. Nothing else works without native sub-issues and dependencies.
+- `ownerType` is `Organization` → **org mode**: issue types and issue fields are available.
+- `ownerType` is `User` → **labels-only mode**: personal repos have no issue types or fields; sizes and priority are labels.
+
+Also check: does `CLAUDE.md` or `AGENTS.md` exist? Does either already contain `<!-- sdd-routing -->`? Is `.github/workflows/` present?
+
+## 2. Labels
+
+Idempotent (`--force` updates colour and description if the label exists):
+
+```bash
+gh label create needs-plan      --color 0E8A16 --description "Epic approved as a spec; sub-issues not yet cut" --force
+gh label create ready-for-agent --color 1D76DB --description "Unblocked and fully specified; an agent may claim it" --force
+gh label create ready-for-human --color D93F0B --description "Needs a human decision, secret, or review" --force
+gh label create needs-info      --color FBCA04 --description "Ticket is ambiguous; ask before building" --force
+gh label create blocked         --color 5319E7 --description "Waiting on a dependency the tracker knows about" --force
+gh label create size:S          --color C2E0C6 --description "One context window, <= 3 files; cloud-eligible" --force
+gh label create size:M          --color BFD4F2 --description "Needs a plan; one or two local workers" --force
+gh label create size:L          --color F9D0C4 --description "Cross-cutting or multi-worker; local waves only" --force
+```
+
+`needs-triage`, `wontfix` and the rest of the canonical triage vocabulary come from `/setup-matt-pocock-skills`; do not redefine them here.
+
+## 3. Org mode extras (skip in labels-only mode)
+
+Ask before creating. Issue types are org-wide, so the user may already have them.
+
+```bash
+ORG=$(gh repo view --json owner --jq .owner.login)
+gh api "orgs/$ORG/issue-types" --jq '.[].name'
+```
+
+If `Epic` and `Task` are missing, offer to create them:
+
+```bash
+gh api -X POST "orgs/$ORG/issue-types" -f name=Epic -f description="A spec: problem, solution, stories, decisions" -F is_enabled=true -f color=purple
+gh api -X POST "orgs/$ORG/issue-types" -f name=Task -f description="One tracer-bullet sub-issue of an epic" -F is_enabled=true -f color=blue
+```
+
+Issue **fields** (Priority, Effort) are optional. If the user wants them, they configure them in the repo's issue settings; record the field names in the routing block so `to-tickets-plus` sets them instead of `size:*` labels.
+
+## 4. Routing block
+
+Write the block from [routing-block.md](routing-block.md) into the agent instructions file:
+
+- Edit `CLAUDE.md` if it exists, else `AGENTS.md`. If neither exists, ask which to create.
+- If `<!-- sdd-routing -->` is already present, replace that block in place. Never append a duplicate.
+- Fill in the mode line (`org` / `labels-only`) and the field names if any.
+
+Show the user the rendered block before writing. The block **disables competing planners** on purpose: with mattpocock's `to-spec` owning the spec and `to-tickets-plus` owning the plan, a second brainstorming or plan-writing skill produces plan files that nobody reads. Leave Superpowers, Compound Engineering and similar suites uninstalled in this repo; if they are installed globally, the block tells the agent not to route through them.
+
+## 5. GitHub Actions (optional)
+
+Ask whether the user wants the **cloud path** for `size:S` tickets. If yes, copy both templates from [workflows/](workflows/) into `.github/workflows/`:
+
+- `sdd-implement.yml` — runs `/implement-issue <N>` in `claude-code-action` when an issue is labelled `ready-for-agent` and carries `size:S`.
+- `sdd-review.yml` — runs `/review-pr <N>` on every pull request that closes a sub-issue.
+
+Then tell the user what to add and do not do it for them:
+
+- A repository secret `ANTHROPIC_API_KEY`, **or** switch the `anthropic_api_key` input to OIDC workload identity per the action's docs. Which one is a project decision; the templates default to the secret and mark the OIDC lines.
+- The `plugin_marketplaces` input in both templates points at `syn54x/skills`; change it if the repo uses a fork.
+
+## 6. Done
+
+Report in one table: what existed, what was created, what was skipped and why. Point at the next step: `/grill-with-docs` → `/to-spec` → `/to-tickets-plus`, then `/build-epic <epic#>` or a `ready-for-agent` label.

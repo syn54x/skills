@@ -1,0 +1,26 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "syn54x-skills",
+  "owner": {
+    "name": "Taylor",
+    "url": "https://github.com/syn54x"
+  },
+  "description": "syn54x/skills as Claude Code plugins. The skills themselves also install cross-tool with `npx skills add syn54x/skills`.",
+  "plugins": [
+    {
+      "name": "sdd",
+      "source": "./",
+      "description": "Issue-native spec-driven development: epic = spec, sub-issues = plan, worktree worker waves, fresh reviewer per PR. Adds the Claude-only agents, hooks and scripts on top of the cross-tool skills.",
+      "version": "0.1.0",
+      "category": "engineering",
+      "keywords": [
+        "sdd",
+        "spec-driven",
+        "github-issues",
+        "worktree",
+        "orchestration"
+      ],
+      "homepage": "https://github.com/syn54x/skills"
+    }
+  ]
+}
