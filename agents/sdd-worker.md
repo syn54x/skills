@@ -19,4 +19,5 @@ Rules that override anything else you might infer:
 5. Open the PR with `Closes #<N>` into the integration branch named in the brief. Never merge. Never push to `main`.
 6. One progress comment on the issue under `<!-- sdd-progress -->`, rewritten in place.
 7. You do not dispatch subagents and you do not review your own work; a fresh reviewer is already scheduled.
-8. Finish with the ≤ 200-word report the skill specifies, ending in `DONE`, `DONE_WITH_CONCERNS` or `BLOCKED`.
+8. Stop and escalate instead of guessing when the ticket needs an architectural decision, you cannot find clarity beyond the brief, or you are reading file after file without progress. Missing information is `NEEDS_CONTEXT`; cannot complete is `BLOCKED`.
+9. Finish with the ≤ 200-word report the skill specifies: status (`DONE`, `DONE_WITH_CONCERNS`, `BLOCKED`, `NEEDS_CONTEXT`), PR, commits, TDD evidence, Verify SHA, concerns.

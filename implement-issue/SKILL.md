@@ -22,7 +22,7 @@ The issue must be **open**, labelled `ready-for-agent`, have **no open blockers*
 
 The body must carry `## What to build`, `## Acceptance criteria`, `## Files owned` (Create / Modify / Test), `## Interfaces` (Consumes / Produces), `## Test scenarios` and `## Verify`. A missing or placeholder section (`TBD`, empty, "add appropriate error handling", "similar to #N") means the ticket is not buildable: add `needs-info`, remove `ready-for-agent`, write one progress comment saying what is missing, and stop.
 
-Read the parent epic body once for the decisions that bind you (`Implementation decisions`, `Testing decisions`, `Out of scope`). Read `CLAUDE.md`/`AGENTS.md`, `CONTEXT.md` and any ADR that touches the files you own.
+Read the parent epic body once for the decisions that bind you (`## Implementation Decisions`, `## Testing Decisions`, `## Out of Scope`, as `to-spec` writes them). Read `CLAUDE.md`/`AGENTS.md`, `CONTEXT.md` and any ADR that touches the files you own.
 
 ## 2. Claim
 
@@ -50,7 +50,9 @@ Work only inside **Files owned** (its Create, Modify and Test paths). If the sli
 
 Use `/tdd` if it is installed; otherwise the same loop by hand: failing test → minimal code → green → refactor. Start from the ticket's **Test scenarios**: one test per line, in the order given, and add any case you discover under the same category headings in the PR body. Follow the in-repo pattern the brief names. Keep the **Produces** signatures in **Interfaces** exactly as the ticket states them; another ticket is coded against those names. Import what you **Consume** by the names the producing ticket published; if a name differs in the merged code, stop and report rather than adapt silently.
 
-Commit as you go with conventional messages. Do not squash history yourself; the merge does that.
+Run the type checker and the single test file you are working in often; run the full suite once, at the end, before Verify. Commit as you go with conventional messages. Do not squash history yourself; the merge does that.
+
+**Stop and escalate** (see *If you get stuck*) rather than guess when: the ticket needs an architectural decision with more than one valid approach; you need to understand code beyond what the brief and ticket gave you and cannot find clarity; you are unsure your approach is right; the work needs restructuring the plan did not anticipate; or you have been reading file after file without progress.
 
 ## 5. Verify
 
@@ -85,6 +87,7 @@ Closes #<N>
 ## Verify
 
 Ran the ticket's Verify block on `<short sha>`: passed.
+TDD: RED `<command>` failed as expected (<one line>); GREEN `<command>` passed (<n/n>).
 
 ## Notes for the reviewer
 
@@ -93,10 +96,26 @@ Ran the ticket's Verify block on `<short sha>`: passed.
 
 `Closes #N` is what closes the sub-issue on merge; do not omit it, do not close the issue by hand.
 
-## 7. Report
+## 7. Self-review, then report
 
-Update the progress comment (status `pr-open`, PR number, Verify SHA). Then reply in ≤ 200 words: PR link, Verify result and SHA, concerns, and one of `DONE` / `DONE_WITH_CONCERNS` / `BLOCKED`. Stop. Review is someone else's job.
+Before reporting, read your own diff once with fresh eyes and fix what you find:
+
+- **Completeness**: every acceptance criterion and every Test scenario has a test; no edge case from the ticket left out.
+- **Discipline**: nothing built that was not asked for (YAGNI); in-repo patterns followed; nothing outside Files owned that is not declared.
+- **Tests**: they assert behaviour, not mocks; test output is pristine (no stray warnings or noise).
+- **Names**: say what things do, not how they work.
+
+This self-review does not replace the reviewer; it makes the review shorter.
+
+Update the progress comment (status `pr-open`, PR number, Verify SHA). Then reply in ≤ 200 words:
+
+- **Status:** `DONE` | `DONE_WITH_CONCERNS` | `BLOCKED` | `NEEDS_CONTEXT`
+- PR link; commits (short SHA + subject)
+- **TDD evidence:** the RED command and its failing output before implementation, the GREEN command and passing output after; then the Verify SHA
+- Concerns, if any; for `BLOCKED` / `NEEDS_CONTEXT`, exactly what you are stuck on, what you tried, and what would unblock you
+
+`DONE_WITH_CONCERNS` means finished but doubtful about correctness or scope. `NEEDS_CONTEXT` means information was missing, not that the work is hard. Never silently produce work you are unsure about. Stop. Review is someone else's job.
 
 ## If you get stuck
 
-Stopping is allowed; a wrong PR is not. Unclaim (`gh issue edit "$N" --remove-assignee @me`), set `needs-info` or `ready-for-human` per `sync-progress`, write why in the progress comment, push whatever is committed on your branch, record the state on the commit (`git notes --ref=sdd-verify add -f -m blocked HEAD`, so the verify gate lets you stop), and report `BLOCKED`.
+Stopping is allowed; a wrong PR is not. Missing information → `NEEDS_CONTEXT`; cannot complete → `BLOCKED`. In both cases: Unclaim (`gh issue edit "$N" --remove-assignee @me`), set `needs-info` or `ready-for-human` per `sync-progress`, write why in the progress comment, push whatever is committed on your branch, record the state on the commit (`git notes --ref=sdd-verify add -f -m blocked HEAD`, so the verify gate lets you stop), and report with the status and the specifics in the message itself; the orchestrator acts on that directly.

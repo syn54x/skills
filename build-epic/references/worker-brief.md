@@ -32,7 +32,7 @@ Invoke `/implement-issue <N>` and follow it. This brief is the context that skil
 
 ## Report
 
-Reply in ≤ 200 words: PR link, Verify result with the short SHA it ran on, anything the reviewer must know, and one of DONE / DONE_WITH_CONCERNS / BLOCKED. Then stop.
+Reply in ≤ 200 words: status (DONE / DONE_WITH_CONCERNS / BLOCKED / NEEDS_CONTEXT), PR link, commits, TDD evidence (RED and GREEN commands with their output), Verify SHA, and anything the reviewer must know. For BLOCKED or NEEDS_CONTEXT, say exactly what you are stuck on, what you tried, and what would unblock you. Then stop.
 ```
 
 ## Tier note
@@ -46,9 +46,9 @@ When a reviewer sends the worker back, append to the same brief (or message the 
 ```markdown
 ## Review findings (round 1 of 1)
 
-<the reviewer's findings, verbatim, grouped under Spec and Quality>
+<the reviewer's Critical and Important findings, verbatim, one per bullet, grouped under Spec and Quality>
 
-Address every item or explain in the PR why not. Re-run Verify. Update the progress comment. Report again in the same format.
+Address every item or explain in the PR why not. Re-run the tests that cover the amended code and name them; re-run Verify. Append a fix report to the PR body: what changed, the covering tests, the command, the output. Update the progress comment. Report again in the same format.
 ```
 
-There is one fix round. A second failure goes to `ready-for-human`.
+There is one fix round with the same worker. If the re-review still leaves findings open, the orchestrator may make **one** fresh dispatch on the ceiling tier carrying the brief, the PR, and the open findings ("a prior worker attempted this twice; you own it now"); after that it goes to `ready-for-human`.

@@ -82,11 +82,19 @@ While workers run, report one line per worker whenever you surface: ticket → l
 
 ## 6. Gate each PR
 
-When a worker reports, run `/review-pr <pr#>` for its PR. That skill dispatches a fresh reviewer, runs the ticket's Verify block, and returns two verdicts: **spec** and **quality**.
+First read the worker's status; never ignore an escalation, and never re-run the same worker unchanged:
+
+- `DONE_WITH_CONCERNS` → read the concerns. Correctness or scope doubts get resolved (answer, or send the worker back) before review; observations are noted and review proceeds.
+- `NEEDS_CONTEXT` → supply the missing context and resume the worker.
+- `BLOCKED` → decide what changes: more context (resume), more capability (fresh dispatch on the ceiling tier), a smaller ticket (split it, new sub-issues, edges), or a wrong plan (fix the ticket body, record the ruling in the plan comment, re-dispatch).
+
+Then run `/review-pr <pr#>` for its PR. That skill dispatches a fresh reviewer, runs the ticket's Verify block, and returns two verdicts: **spec** and **quality**, with severities.
 
 - Both pass → merge into the integration branch under the project's merge law (squash unless the law says otherwise). The merge closes the sub-issue via `Closes #N`.
-- Either fails → the reviewer's findings go back to the **same worker** (resume it by name; it holds the context). One fix round, then re-gate from the top.
-- Fails twice → label `ready-for-human`, unclaim, leave the PR open, and move on. Do not fix it yourself beyond a trivial mechanical nit.
+- Either fails → the Critical and Important findings go back to the **same worker** (resume it by name; it holds the context). One fix round, then a scoped re-review.
+- Findings still open → either one fresh dispatch on the ceiling tier carrying the brief, the PR and the open findings, or straight to `ready-for-human`: label it, unclaim, leave the PR open, move on. Do not fix it yourself beyond a trivial mechanical nit.
+
+**Merging.** Merge in dependency order, one PR at a time. If a merge conflicts, abort it (`git merge --abort` or close the attempt), do not hand-resolve: silently picking a side discards one ticket's intent. Instead resume that worker with "rebase onto the current integration branch and re-run Verify", then re-gate. After each merge, run the merged ticket's Verify block (or the repo's suite if the law names one) on the integration branch before merging the next; a red tree stops the wave until it is diagnosed.
 
 Merges move the frontier. After each merge, recompute the ready queue (step 2) and dispatch the newly unblocked tickets as the next wave.
 

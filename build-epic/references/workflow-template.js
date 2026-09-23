@@ -29,7 +29,7 @@ const REPORT = {
     ticket: { type: 'number' },
     pr: { type: 'number' },
     verifySha: { type: 'string' },
-    status: { type: 'string', enum: ['DONE', 'DONE_WITH_CONCERNS', 'BLOCKED'] },
+    status: { type: 'string', enum: ['DONE', 'DONE_WITH_CONCERNS', 'BLOCKED', 'NEEDS_CONTEXT'] },
     notes: { type: 'string' },
   },
   required: ['ticket', 'status'],
@@ -72,7 +72,7 @@ for (let i = 0; i < LAYERS.length; i++) {
     layer,
     (t) => agent(implementPrompt(t), { label: `implement:#${t.n}`, phase: 'Implement', schema: REPORT, isolation: 'worktree' }),
     async (r, t) => {
-      if (!r || r.status === 'BLOCKED' || !r.pr) return { ticket: t.n, outcome: 'blocked', r }
+      if (!r || r.status === 'BLOCKED' || r.status === 'NEEDS_CONTEXT' || !r.pr) return { ticket: t.n, outcome: 'blocked', r }
       let v = await agent(reviewPrompt(r), { label: `review:#${r.pr}`, phase: 'Review', schema: VERDICT })
       if (v && (v.spec === 'fail' || v.quality === 'fail')) {
         const r2 = await agent(fixPrompt(r, v), { label: `fix:#${t.n}`, phase: 'Implement', schema: REPORT, isolation: 'worktree' })

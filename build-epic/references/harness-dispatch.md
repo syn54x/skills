@@ -12,13 +12,15 @@ One `Agent` call per ticket, all in the same response so they run concurrently:
 Agent(
   name: "worker-<N>",                 # resumable by name for the fix round
   subagent_type: "sdd-worker",        # from the sdd plugin; omit to use general-purpose
-  model: "<mid tier | ceiling tier>", # per the tier rubric; omit to inherit
+  model: "<mid tier | ceiling tier>", # per the tier rubric; ALWAYS set it — an omitted model inherits the session's, usually the most expensive
   isolation: "worktree",              # fresh worktree per agent
   prompt: <brief>
 )
 ```
 
 - The worktree is created from the current checkout, so **switch to the integration branch before dispatching**. The worker then creates `sdd/<N>-<slug>` from it.
+- Check `.claude/worktrees/` is gitignored before the first wave; the harness puts per-agent worktrees there.
+- Do not pass a permission `mode` to the worker; the user's configured permissions apply.
 - `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` **must be unset**. Worktree waves and Agent Teams are mutually exclusive in a session: teammates do not get worktree isolation, the task tools are gated on the flag, and a team costs several times the tokens of a wave. Check with `echo $CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` before the first wave; if it is set, stop and tell the user rather than mixing the two.
 - Heartbeat sources: `ListAgents`, `gh pr list --head sdd/<N>-`, the issue's progress comment.
 - Fix round: `SendMessage` to `worker-<N>` with the reviewer's findings.
@@ -59,4 +61,12 @@ Then run `/implement-issue <N>` in that checkout with the brief as context. Gate
 
 ## Cleanup
 
-After a PR merges: `git worktree remove <path>` (refuse if it has uncommitted changes) and `git branch -d sdd/<N>-<slug>` locally. Remote branches are deleted by the merge setting or left for the user.
+After a PR merges, in this order:
+
+```bash
+git worktree unlock <path>        # harness-created worktrees are locked; remove fails without this
+git worktree remove <path>        # refuses if it has uncommitted changes
+git branch -d sdd/<N>-<slug>      # lowercase -d refuses an unmerged branch, which is the safety you want
+```
+
+If `-d` refuses, investigate before forcing. Remote branches are deleted by the merge setting or left for the user.
