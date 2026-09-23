@@ -1,12 +1,12 @@
 {
-  "description": "sdd plugin gates: a worker on an sdd/* branch cannot stop without a recorded Verify run and a clean tree; a worktree with uncommitted or unpushed work cannot be removed.",
+  "description": "sdd gates: a worker on an sdd/* branch cannot stop without a recorded Verify run and a clean tree; a worktree with uncommitted or unpushed work cannot be removed. One file for Claude Code and Codex (same format); Cursor uses hooks/cursor.json.",
   "hooks": {
     "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/verify-gate.sh\"",
+            "command": "bash \"${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/verify-gate.sh\"",
             "timeout": 20
           }
         ]
@@ -17,7 +17,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/verify-gate.sh\"",
+            "command": "bash \"${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/verify-gate.sh\"",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/worktree-guard.sh\"",
             "timeout": 20
           }
         ]
@@ -28,7 +40,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/worktree-guard.sh\"",
+            "command": "bash \"${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/worktree-guard.sh\"",
             "timeout": 20
           }
         ]

@@ -28,6 +28,8 @@ Agent(
 
 ## Codex
 
+Install the `sdd` plugin (`codex plugin marketplace add syn54x/skills`, then `/plugins` → install **sdd**) for the same Stop and worktree-remove gates as Claude Code; Codex's plugin spec has no custom-agent slot, so workers are plain delegations.
+
 Delegate one subagent per ticket, each told to create and work in its own worktree:
 
 ```
@@ -39,7 +41,9 @@ Codex subagents do not share your context, so the brief must be complete. Collec
 
 ## Cursor
 
-One background agent per ticket, each in its own worktree:
+Install the `sdd` plugin (`/add-plugin sdd` once the marketplace is registered) for the `sdd-worker` / `sdd-reviewer` subagents and the `stop` and `beforeShellExecution` gates.
+
+One background agent per ticket, each in its own worktree (ask for worktree isolation explicitly; Cursor subagents share the checkout by default):
 
 - Start a background agent from the integration branch with the brief as its task.
 - Cursor creates the worktree; the agent creates `sdd/<N>-<slug>` inside it.

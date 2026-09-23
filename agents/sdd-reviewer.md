@@ -3,6 +3,7 @@ name: sdd-reviewer
 description: Fresh, read-only reviewer for a PR that closes a sub-issue — re-runs the ticket's Verify block and returns separate spec and quality verdicts by following the review-pr skill. Dispatched by build-epic after each worker report; never the worker.
 model: opus
 tools: Read, Grep, Glob, Bash
+readonly: true
 skills:
   - review-pr
   - sync-progress

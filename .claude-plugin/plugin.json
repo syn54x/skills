@@ -17,14 +17,5 @@
     "worktree",
     "orchestration",
     "code-review"
-  ],
-  "skills": [
-    "./sdd-setup",
-    "./to-tickets-plus",
-    "./build-epic",
-    "./implement-issue",
-    "./review-pr",
-    "./sync-progress",
-    "./close-epic"
   ]
 }

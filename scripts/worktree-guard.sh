@@ -1,30 +1,48 @@
 #!/usr/bin/env bash
-# worktree-guard.sh — WorktreeRemove hook.
-# Refuses to remove a worktree that still has uncommitted changes, or unpushed commits on an
-# `sdd/*` branch. Any non-zero exit fails the removal; stderr goes back to the agent.
+# worktree-guard.sh — refuses to remove a worktree that still has uncommitted changes, or
+# unpushed commits on an `sdd/*` branch. Exit 2 blocks; stderr goes back to the agent.
 #
-# stdin: the hook JSON. `name` is the worktree name (docs); some builds also send a path.
-# The path is resolved from `git worktree list` by matching the name against the worktree's
-# directory basename or its branch (`worktree-<name>`). Unresolvable → no-op.
+# Runs under three hook shapes, detected from stdin:
+#   Claude Code WorktreeRemove   → `name` (worktree name); resolved via `git worktree list`
+#   Claude Code / Codex PreToolUse (Bash) → `tool_input.command`; acts only on `git worktree remove …`
+#   Cursor beforeShellExecution  → `command`; same
+# Anything else is a no-op.
 set -uo pipefail
 
 INPUT=$(cat 2>/dev/null || true)
 
+# BSD sed: no \| alternation, so a value ends at its first double quote (paths with quotes are not supported).
 field() { printf '%s' "$INPUT" | sed -n "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p" | head -n1; }
 
-NAME=$(field name)
-WT=$(field worktree_path)
-[ -z "$WT" ] && WT=$(field path)
 CWD=$(field cwd)
+[ -z "$CWD" ] && CWD="${CURSOR_PROJECT_DIR:-${CLAUDE_PROJECT_DIR:-}}"
 [ -n "$CWD" ] && [ -d "$CWD" ] && cd "$CWD"
 
-if [ -z "$WT" ] && [ -n "$NAME" ] && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  WT=$(git worktree list --porcelain | awk -v n="$NAME" '
-    /^worktree /{p=substr($0,10)}
-    /^branch /{b=substr($0,8); sub("^refs/heads/","",b);
-      if (p ~ ("/" n "$") || b == ("worktree-" n) || b == n) {print p; exit}}')
+WT=""
+CMD=$(field command)
+if [ -n "$CMD" ]; then
+  # Shell-command mode: only `git worktree remove <path>` concerns us.
+  case "$CMD" in
+    *"git worktree remove"*|*"git -C "*" worktree remove"*) ;;
+    *) exit 0 ;;
+  esac
+  # Last non-flag argument after "remove" is the path.
+  WT=$(printf '%s' "$CMD" | sed -n 's/.*worktree remove[[:space:]]*\(.*\)$/\1/p' \
+        | tr ' ' '\n' | grep -v '^-' | grep -v '^$' | tail -n1)
+  [ -n "$WT" ] && [ ! -d "$WT" ] && [ -n "$CWD" ] && [ -d "$CWD/$WT" ] && WT="$CWD/$WT"
+else
+  NAME=$(field name)
+  WT=$(field worktree_path)
+  [ -z "$WT" ] && WT=$(field path)
+  if [ -z "$WT" ] && [ -n "$NAME" ] && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    WT=$(git worktree list --porcelain | awk -v n="$NAME" '
+      /^worktree /{p=substr($0,10)}
+      /^branch /{b=substr($0,8); sub("^refs/heads/","",b);
+        if (p ~ ("/" n "$") || b == ("worktree-" n) || b == n) {print p; exit}}')
+  fi
 fi
-# Unresolvable name: not ours to judge; never guard the main checkout by accident.
+
+# Unresolvable: not ours to judge; never guard the main checkout by accident.
 [ -n "$WT" ] && [ -d "$WT" ] || exit 0
 git -C "$WT" rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0
 

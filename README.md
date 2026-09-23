@@ -41,13 +41,13 @@ Not adopted, and why: CCPM (unmaintained, wrong `gh-sub-issue` syntax), original
 
 | Skill | Description |
 |-------|-------------|
-| [`sdd-setup`](sdd-setup/) | Once per repo: install and configure mattpocock/skills if missing, check `gh`, create the readiness and size labels, enable issue types on org repos, write the CLAUDE.md routing block, optionally install the Actions workflows |
-| [`to-tickets-plus`](to-tickets-plus/) | Run `/to-tickets`, then link sub-issues natively, add **Files owned / Interfaces / Test scenarios / Verify**, size them, and pin one plan comment on the epic |
-| [`build-epic`](build-epic/) | Orchestrator: ready queue → layers → parallel-safety check → isolated worker waves (3–5) → fresh review per PR → merge in dependency order → close |
-| [`implement-issue`](implement-issue/) | One worker, one issue, one PR with `Closes #N`; identical locally and inside `claude-code-action` |
-| [`review-pr`](review-pr/) | Fresh reviewer per PR: re-runs Verify, separate **spec** and **quality** verdicts, one fix round, then `ready-for-human` |
-| [`sync-progress`](sync-progress/) | Idempotent progress comments under `<!-- sdd-progress -->`; claim and unclaim by assignment |
-| [`close-epic`](close-epic/) | All sub-issues closed → summary comment with ticket → PR table and Learnings → close the epic |
+| [`sdd-setup`](skills/sdd-setup/) | Once per repo: install and configure mattpocock/skills if missing, check `gh`, create the readiness and size labels, enable issue types on org repos, write the CLAUDE.md routing block, optionally install the Actions workflows |
+| [`to-tickets-plus`](skills/to-tickets-plus/) | Run `/to-tickets`, then link sub-issues natively, add **Files owned / Interfaces / Test scenarios / Verify**, size them, and pin one plan comment on the epic |
+| [`build-epic`](skills/build-epic/) | Orchestrator: ready queue → layers → parallel-safety check → isolated worker waves (3–5) → fresh review per PR → merge in dependency order → close |
+| [`implement-issue`](skills/implement-issue/) | One worker, one issue, one PR with `Closes #N`; identical locally and inside `claude-code-action` |
+| [`review-pr`](skills/review-pr/) | Fresh reviewer per PR: re-runs Verify, separate **spec** and **quality** verdicts, one fix round, then `ready-for-human` |
+| [`sync-progress`](skills/sync-progress/) | Idempotent progress comments under `<!-- sdd-progress -->`; claim and unclaim by assignment |
+| [`close-epic`](skills/close-epic/) | All sub-issues closed → summary comment with ticket → PR table and Learnings → close the epic |
 
 **Size ladder** (`to-tickets-plus` labels each ticket; the label picks the runtime):
 
@@ -58,7 +58,7 @@ Not adopted, and why: CCPM (unmaintained, wrong `gh-sub-issue` syntax), original
 | **L** / epic | 3+ sub-issues, cross-cutting | `/build-epic` | local waves, 3–5 workers, worktree each | reviewer per PR |
 | **XL** | 8+ independent sub-issues | `/build-epic --workflow` | dynamic workflow (Claude Code, `ultracode`) | scripted verify → merge order |
 
-Dispatch is harness-agnostic: `build-epic/references/harness-dispatch.md` gives the concrete call for Claude Code (`Agent` + `isolation: "worktree"`, Agent Teams flag **unset**), Codex (subagent per worktree), Cursor (background agent per worktree), and a sequential fallback for anything else. Everything below the dispatch line is `gh` + prose and identical across tools.
+Dispatch is harness-agnostic: `skills/build-epic/references/harness-dispatch.md` gives the concrete call for Claude Code (`Agent` + `isolation: "worktree"`, Agent Teams flag **unset**), Codex (subagent per worktree), Cursor (background agent per worktree), and a sequential fallback for anything else. Everything below the dispatch line is `gh` + prose and identical across tools.
 
 Leave Superpowers, Compound Engineering and similar suites **uninstalled in target repos**; the routing block written by `sdd-setup` disables competing planners.
 
@@ -89,15 +89,36 @@ Install for all detected agents:
 npx skills add syn54x/skills --skill coordinate --agent '*'
 ```
 
-### As a Claude Code plugin
+### As a plugin (Claude Code, Cursor, Codex)
 
-The `sdd` plugin bundles the seven SDD skills with the Claude-only extras: two agents (`sdd-worker` on a mid-tier model in a worktree, `sdd-reviewer` read-only + `gh`), hooks (a Stop/SubagentStop verify gate, a WorktreeRemove guard) and helper scripts (`ready.sh`, `layers.py`, `progress-comment.sh`).
+The `sdd` plugin bundles the seven SDD skills with what `npx skills add` cannot install: two agents (`sdd-worker` on a mid-tier model in a worktree, `sdd-reviewer` read-only + `gh`), hooks (a stop-time verify gate, a worktree-remove guard) and helper scripts (`ready.sh`, `layers.py`, `progress-comment.sh`).
 
 ```
+# Claude Code
 /plugin marketplace add syn54x/skills
 /plugin install sdd@syn54x-skills
+
+# Cursor (Agent chat)
+/add-plugin sdd            # after the marketplace is registered or published at cursor.com/marketplace/publish
+
+# Codex
+codex plugin marketplace add syn54x/skills
+codex                      # then /plugins → syn54x skills → sdd → Install; restart Codex
 ```
+
+What each host gets:
+
+| | npx skills | Claude Code plugin | Cursor plugin | Codex plugin |
+|---|---|---|---|---|
+| the seven skills | yes | yes | yes | yes |
+| verify gate on stop | prose only | `Stop` / `SubagentStop` hook | `stop` / `subagentStop` hook | `Stop` / `SubagentStop` hook |
+| worktree-remove guard | prose only | `WorktreeRemove` + `PreToolUse` hook | `beforeShellExecution` hook | `PreToolUse` hook |
+| `sdd-worker`, `sdd-reviewer` agents | no | yes, with worktree isolation | yes (`readonly` reviewer; ask for worktree isolation) | no: Codex plugins have no agent slot yet |
+| helper scripts | no | `${CLAUDE_PLUGIN_ROOT}/scripts` | `scripts/` in the plugin | `${PLUGIN_ROOT}/scripts` |
+| XL dynamic workflow | no | yes | no | no |
+
+The Cursor and Codex manifests are written against their published schemas and the same layout Compound Engineering and Pydantic ship, but the workflow has only been exercised end to end in Claude Code so far.
 
 Then, in each target repo: `/sdd-setup`. It installs and configures mattpocock/skills first if the repo does not have them. For the cloud path, it copies `sdd-implement.yml` and `sdd-review.yml` into `.github/workflows/`; add an `ANTHROPIC_API_KEY` secret or switch the templates to OIDC.
 
-Skills in this repo follow the [Agent Skills](https://agentskills.io) format (`SKILL.md` with YAML frontmatter). The `sdd` plugin manifest lives in `.claude-plugin/`; its Claude-only extras are the root-level `agents/`, `hooks/` and `scripts/` directories, which `npx skills add` ignores.
+Skills in this repo follow the [Agent Skills](https://agentskills.io) format (`SKILL.md` with YAML frontmatter). The SDD skills live under `skills/` because that directory is the plugin's skill set for all three hosts; the other skills stay at the root. Plugin manifests live in `.claude-plugin/`, `.cursor-plugin/`, `.codex-plugin/` and `.agents/plugins/`; the extras are the root-level `agents/`, `hooks/` and `scripts/`, which `npx skills add` ignores.

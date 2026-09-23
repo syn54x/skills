@@ -1,0 +1,31 @@
+{
+  "name": "sdd",
+  "displayName": "SDD (issue-native)",
+  "version": "0.1.0",
+  "description": "Issue-native spec-driven development: epic = spec, sub-issues = plan, worktree worker waves, fresh reviewer per PR. Adds agents and hooks on top of the cross-tool skills.",
+  "author": {
+    "name": "Taylor",
+    "url": "https://github.com/syn54x"
+  },
+  "homepage": "https://github.com/syn54x/skills",
+  "repository": "https://github.com/syn54x/skills",
+  "license": "MIT",
+  "keywords": [
+    "sdd",
+    "spec-driven",
+    "github-issues",
+    "sub-issues",
+    "worktree",
+    "orchestration",
+    "code-review"
+  ],
+  "category": "engineering",
+  "tags": [
+    "sdd",
+    "github-issues",
+    "orchestration"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "hooks": "./hooks/cursor.json"
+}

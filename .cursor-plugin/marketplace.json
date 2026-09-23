@@ -1,0 +1,17 @@
+{
+  "$schema": "https://cursor.com/schemas/cursor-plugin/marketplace.json",
+  "name": "syn54x-skills",
+  "owner": {
+    "name": "Taylor"
+  },
+  "metadata": {
+    "description": "syn54x/skills as Cursor plugins. The skills also install cross-tool with `npx skills add syn54x/skills`."
+  },
+  "plugins": [
+    {
+      "name": "sdd",
+      "source": ".",
+      "description": "Issue-native spec-driven development: epic = spec, sub-issues = plan, worktree worker waves, fresh reviewer per PR. Adds agents and hooks on top of the cross-tool skills."
+    }
+  ]
+}
