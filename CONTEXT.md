@@ -15,7 +15,7 @@ Glossary for this skills package. Architecture terms (`module`, `interface`, `se
 | **Observability facade** | Python only — always-scaffolded `observability.py`; Logfire is an optional adapter behind the same interface. |
 | **Verify** | Baseline gate plus per-flag smoke probes from the matrix `verify` column. |
 | **Epic** | The spec: one GitHub issue (type `Epic` on org repos) written by `to-spec`. Its body is the human-readable spec; its `<!-- sdd-plan -->` comment is the plan. |
-| **Sub-issue** | One tracer-bullet ticket under an epic, linked natively (`--parent`, `--blocked-by`). Carries **Files owned**, **Verify**, **Interfaces**. |
+| **Sub-issue** | One tracer-bullet ticket under an epic, linked natively (`--parent`, `--blocked-by`). Carries **Files owned** (Create/Modify/Test), **Interfaces** (Consumes/Produces), **Test scenarios**, **Verify**. |
 | **Ready queue** | Sub-issues that are open + no open blockers + unassigned + `ready-for-agent`. Derived by `gh`, never read from a status label. |
 | **Layer** | Sub-issues whose blockers all sit in earlier layers. Layer 0 is the initial ready queue. |
 | **Wave** | One concurrent dispatch of 3–5 workers over the current ready queue, one worktree each. |

@@ -8,7 +8,7 @@ Invoke `/implement-issue <N>` and follow it. This brief is the context that skil
 
 ## Ticket (verbatim)
 
-<the full sub-issue body: What to build, Acceptance criteria, Blocked by, Files owned, Verify, Interfaces>
+<the full sub-issue body: What to build, Acceptance criteria, Blocked by, Files owned, Interfaces, Test scenarios, Verify>
 
 ## Scope and non-goals
 

@@ -4,10 +4,13 @@ Run over the set of **ready** tickets before every wave. Input: each ticket's `#
 
 ## 1. File overlap
 
-Build the map path → tickets from every `Files owned` list, expanding globs against the current tree.
+Build the map path → tickets from every `Files owned` list, expanding globs against the current tree. Keep the `Create` / `Modify` / `Test` tag on each entry.
 
-- A path claimed by two ready tickets → **conflict**. Resolve by adding a `--add-blocked-by` edge (smaller or more foundational ticket first) or by holding one back this wave. Never dispatch both.
-- A ticket with no `Files owned` section → not ready. Label `needs-info`, remove `ready-for-agent`, report.
+- A path under `Modify` or `Test` in two ready tickets → **conflict**. Resolve by adding a `--add-blocked-by` edge (smaller or more foundational ticket first) or by holding one back this wave. Never dispatch both.
+- A path under `Create` in one ticket and `Modify` in another → **conflict**, same resolution; the modifier depends on the creator.
+- Two tickets that each `Create` a *different* path in the same directory → fine.
+- The same path under `Create` in two tickets → the plan is wrong; report it, do not pick one.
+- A ticket with no `Files owned` section, or an untagged flat list → not ready. Label `needs-info`, remove `ready-for-agent`, report.
 
 ## 2. Shared-state files
 
@@ -23,10 +26,11 @@ These are conflicts even when only one ticket lists them, because the other tick
 
 ## 3. Interface pairs
 
-For every line in a ticket's `## Interfaces` that names another ticket ("consumed by #104"):
+For every `Consumes` line in a ticket's `## Interfaces`:
 
-- The producer must be in an earlier layer than the consumer. If the link is missing, add `gh issue edit <consumer> --add-blocked-by <producer>`.
-- Two tickets that both *modify* the same interface → conflict, same resolution as file overlap.
+- The producing ticket it names must be in an earlier layer. If the `blockedBy` link is missing, add `gh issue edit <consumer> --add-blocked-by <producer>`.
+- The name must appear in that producer's `Produces` list with the same signature. A mismatch is a plan bug: fix the ticket bodies before dispatch, since two workers would otherwise code against different names.
+- Two ready tickets that both `Produce` the same name, or both modify the same interface → conflict, same resolution as file overlap.
 
 ## 4. Wide refactors
 

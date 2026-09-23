@@ -20,7 +20,7 @@ gh issue view "$N" --comments
 
 The issue must be **open**, labelled `ready-for-agent`, have **no open blockers** (`blockedBy.nodes[] | select(.state=="OPEN")` is empty), and be **unassigned or assigned to you**. Anything else: stop and report which condition failed. Do not "just start".
 
-The body must carry `## What to build`, `## Acceptance criteria`, `## Files owned`, `## Verify` and `## Interfaces`. A missing or placeholder section (`TBD`, empty) means the ticket is not buildable: add `needs-info`, remove `ready-for-agent`, write one progress comment saying what is missing, and stop.
+The body must carry `## What to build`, `## Acceptance criteria`, `## Files owned` (Create / Modify / Test), `## Interfaces` (Consumes / Produces), `## Test scenarios` and `## Verify`. A missing or placeholder section (`TBD`, empty, "add appropriate error handling", "similar to #N") means the ticket is not buildable: add `needs-info`, remove `ready-for-agent`, write one progress comment saying what is missing, and stop.
 
 Read the parent epic body once for the decisions that bind you (`Implementation decisions`, `Testing decisions`, `Out of scope`). Read `CLAUDE.md`/`AGENTS.md`, `CONTEXT.md` and any ADR that touches the files you own.
 
@@ -46,9 +46,9 @@ Determine where you are:
 
 ## 4. Build, test-first
 
-Work only inside **Files owned**. If the slice genuinely needs a file outside that list, you may touch it, but say so in the PR body under **Outside Files owned** with the reason; the reviewer decides whether that is scope creep.
+Work only inside **Files owned** (its Create, Modify and Test paths). If the slice genuinely needs a file outside that list, you may touch it, but say so in the PR body under **Outside Files owned** with the reason; the reviewer decides whether that is scope creep.
 
-Use `/tdd` if it is installed; otherwise the same loop by hand: failing test → minimal code → green → refactor. Follow the in-repo pattern the brief names. Keep **Interfaces** exactly as the ticket states them; another ticket is coded against those signatures.
+Use `/tdd` if it is installed; otherwise the same loop by hand: failing test → minimal code → green → refactor. Start from the ticket's **Test scenarios**: one test per line, in the order given, and add any case you discover under the same category headings in the PR body. Follow the in-repo pattern the brief names. Keep the **Produces** signatures in **Interfaces** exactly as the ticket states them; another ticket is coded against those names. Import what you **Consume** by the names the producing ticket published; if a name differs in the merged code, stop and report rather than adapt silently.
 
 Commit as you go with conventional messages. Do not squash history yourself; the merge does that.
 

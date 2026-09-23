@@ -1,6 +1,6 @@
 ---
 name: to-tickets-plus
-description: Run to-tickets against an epic issue, then harden every sub-issue for agents — native parent and blocked-by links, size labels, and the Files owned / Verify / Interfaces sections — and pin one plan comment on the epic. Use after to-spec has published an epic and before build-epic.
+description: Run to-tickets against an epic issue, then harden every sub-issue for agents — native parent and blocked-by links, size labels, and the Files owned / Interfaces / Test scenarios / Verify sections — and pin one plan comment on the epic. Use after to-spec has published an epic and before build-epic.
 disable-model-invocation: true
 ---
 
@@ -38,14 +38,27 @@ Keep the `## Blocked by` prose section in the body too — humans read it — bu
 
 ## 3. Harden each body
 
-Append three sections to every sub-issue body. Read the code first; do not guess.
+Append four sections to every sub-issue body. Read the code first; do not guess.
 
 ````markdown
 ## Files owned
 
-- `src/billing/invoice.ts`
-- `src/billing/__tests__/invoice.test.ts`
-- `db/migrations/2026-*-invoice-status.sql` (new)
+- Create: `db/migrations/2026-09-22-invoice-status.sql`
+- Modify: `src/billing/invoice.ts`, `src/billing/schema.ts`
+- Test: `src/billing/__tests__/invoice.test.ts`
+
+## Interfaces
+
+- Consumes: `InvoiceStatus` enum from `src/billing/schema.ts` (#101)
+- Produces: `createInvoice(input: InvoiceInput): Promise<Invoice>` — used by #104
+- Produces: event `invoice.created` on the event bus, payload `{ id: string; customerId: string }` — used by #105
+
+## Test scenarios
+
+- Happy path: valid input → invoice persisted with status `draft`, `invoice.created` emitted once
+- Edge case: duplicate `externalRef` → returns the existing invoice, no second event
+- Error path: unknown `customerId` → `NotFoundError`, nothing persisted
+- Integration: `POST /invoices` → 201 with the invoice id, row visible in `invoices`
 
 ## Verify
 
@@ -53,19 +66,17 @@ Append three sections to every sub-issue body. Read the code first; do not guess
 pnpm test -- src/billing
 pnpm typecheck
 ```
-
-## Interfaces
-
-- `createInvoice(input: InvoiceInput): Promise<Invoice>` — consumed by #104
-- Emits `invoice.created` on the event bus (payload: `{ id, customerId }`)
 ````
 
 Rules:
 
-- **Files owned** is the parallel-safety contract. Two tickets in the same wave must not list the same path. If they do, either merge them into one ticket or add a `--add-blocked-by` edge. Directories are allowed (`src/billing/**`) but shrink the frontier, so prefer files.
+- **Files owned** is the parallel-safety contract. `Modify` and `Test` paths must not appear in two tickets of the same wave; two tickets may each *create* different files in the same directory. If a path collides, merge the tickets or add a `--add-blocked-by` edge. Directories are allowed (`src/billing/**`) but shrink the frontier, so prefer files.
+- **Interfaces** is how a worker learns the names its neighbours use, because it sees only its own ticket. **Consumes** lists what this ticket relies on from earlier tickets, with the producing ticket number; **Produces** lists exact names, parameter and return types, events and routes that later tickets rely on, with the consuming ticket number. Every Consumes line must have a matching `blockedBy` link to its producer.
+- **Test scenarios** are what the worker turns into tests, one line each, prefixed Happy path / Edge case / Error path / Integration. Include only the categories that apply. A ticket with no behavioural change says `Test expectation: none — <reason>` rather than leaving the section empty.
 - **Verify** is fenced, runnable from the repo root, and green means done. The worker runs it before opening the PR and the reviewer runs it again. No "manually check that…" lines.
-- **Interfaces** lists every signature, event, route or schema another ticket depends on. A consumer ticket names the producer; the producer ticket must block the consumer.
-- **No placeholders.** `TBD`, `TODO`, `?`, or an empty section means the ticket is not ready: remove `ready-for-agent`, add `needs-info`, and tell the user what is missing.
+- **No placeholders.** Any of these means the ticket is not ready: `TBD`, `TODO`, `?`, an empty section; "add appropriate error handling / validation / edge cases"; "write tests for the above" with no scenarios; "similar to #N" instead of the content; a name in Interfaces that no ticket defines; an acceptance criterion that describes what to do without saying how it is checked. Remove `ready-for-agent`, add `needs-info`, and tell the user what is missing.
+
+After all bodies are written, do one **consistency pass**: every name in a Consumes line appears in some earlier ticket's Produces line with the same signature, and every epic requirement maps to at least one ticket. Fix inline; do not re-quiz the user for these.
 
 Edit with:
 
@@ -91,7 +102,7 @@ gh issue edit "$N" --add-label size:M
 
 ## 5. Pin the plan on the epic
 
-Compute the dependency layers from the native links and upsert **one** comment on the epic under `<!-- sdd-plan -->` (see `sync-progress` for the upsert). Rewrite it whenever tickets change.
+Compute the dependency layers from the native links and upsert **one** comment on the epic under `<!-- sdd-plan -->` (see `sync-progress` for the upsert). Rewrite it whenever tickets change. Test paths are omitted from the table; the safety check reads them from the bodies.
 
 ```markdown
 <!-- sdd-plan -->
@@ -101,12 +112,12 @@ Compute the dependency layers from the native links and upsert **one** comment o
 **Constraints:** <stack, conventions, anything the epic fixes: from the epic's Implementation decisions>
 **Integration branch:** `feat/<slug>` (created by build-epic)
 
-| Layer | Ticket | Size | Blocked by | Files owned |
+| Layer | Ticket | Size | Blocked by | Files owned (C/M) |
 |---|---|---|---|---|
-| 0 | #101 add invoice status column | S | — | `db/migrations/…`, `src/billing/schema.ts` |
-| 0 | #102 invoice events | S | — | `src/events/invoice.ts` |
-| 1 | #103 create invoice endpoint | M | #101, #102 | `src/billing/invoice.ts`, … |
-| 2 | #104 invoice UI | M | #103 | `web/src/invoices/**` |
+| 0 | #101 add invoice status column | S | — | C: `db/migrations/…`; M: `src/billing/schema.ts` |
+| 0 | #102 invoice events | S | — | C: `src/events/invoice.ts` |
+| 1 | #103 create invoice endpoint | M | #101, #102 | M: `src/billing/invoice.ts`, … |
+| 2 | #104 invoice UI | M | #103 | M: `web/src/invoices/**` |
 
 Layer *n* contains every ticket whose blockers all sit in layers < *n*. Layer 0 is the initial ready queue.
 ```

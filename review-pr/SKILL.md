@@ -33,8 +33,9 @@ Check out the PR head in a clean worktree (`gh pr checkout "$PR"` in a throwaway
 Against the sub-issue body only. Ignore how nice the code is.
 
 - Every **acceptance criterion** is met and has a test that would fail without the change.
+- Every **Test scenario** line has a corresponding test; a scenario with no test is a spec failure even if the code happens to work.
 - **Files owned** respected; anything outside it is declared in the PR body with a reason you accept.
-- **Interfaces** match the ticket's signatures exactly (names, types, events, routes). A drift here breaks a sibling ticket.
+- **Interfaces**: every **Produces** line exists with exactly that signature (names, types, events, routes), and every **Consumes** line is used by the published name, not a local alias. A drift here breaks a sibling ticket.
 - **Out of scope** items from the epic are not touched.
 - Verify is green on the PR head.
 

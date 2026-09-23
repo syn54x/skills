@@ -21,7 +21,7 @@ Spec-driven development where the **spec is an epic issue**, the **plan is its s
 | Skill | Description |
 |-------|-------------|
 | [`sdd-setup`](sdd-setup/) | Once per repo: check `gh`, create the readiness and size labels, enable issue types on org repos, write the CLAUDE.md routing block, optionally install the Actions workflows |
-| [`to-tickets-plus`](to-tickets-plus/) | Run `/to-tickets`, then link sub-issues natively, add **Files owned / Verify / Interfaces**, size them, and pin one plan comment on the epic |
+| [`to-tickets-plus`](to-tickets-plus/) | Run `/to-tickets`, then link sub-issues natively, add **Files owned / Interfaces / Test scenarios / Verify**, size them, and pin one plan comment on the epic |
 | [`build-epic`](build-epic/) | Orchestrator: ready queue → layers → parallel-safety check → isolated worker waves (3–5) → fresh review per PR → merge in dependency order → close |
 | [`implement-issue`](implement-issue/) | One worker, one issue, one PR with `Closes #N`; identical locally and inside `claude-code-action` |
 | [`review-pr`](review-pr/) | Fresh reviewer per PR: re-runs Verify, separate **spec** and **quality** verdicts, one fix round, then `ready-for-human` |
