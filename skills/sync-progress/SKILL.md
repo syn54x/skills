@@ -16,6 +16,8 @@ One issue, one progress comment. Every update **rewrites the same comment** foun
 | `<!-- sdd-plan -->` | the epic | `to-tickets-plus` |
 | `<!-- sdd-wave -->` | the epic | `build-epic` |
 | `<!-- sdd-summary -->` | the epic | `close-epic` |
+| `<!-- sdd-retro -->` | the epic | `close-epic` (numbers from GitHub state; stays in the repo) |
+| `<!-- sdd-feedback-draft -->` | the epic (one per draft) | `close-epic`, only when nobody can approve an upstream filing |
 
 The marker is the **first line** of the comment body. Nothing else identifies the comment.
 

@@ -62,6 +62,20 @@ Dispatch is harness-agnostic: `skills/build-epic/references/harness-dispatch.md`
 
 Leave Superpowers, Compound Engineering and similar suites **uninstalled in target repos**; the routing block written by `sdd-setup` disables competing planners.
 
+#### How the skills improve
+
+Every epic leaves a trail in GitHub. `close-epic` turns it into a **retro** (tickets by size, escalations, edges added mid-build, fix rounds, Verify-block corrections, panel findings and dropped count, claim-to-PR time), posted on the epic and computed from labels, marker comments and PR reviews alone. Learnings are tagged **[repo]**, **[reusable]** or **[skill]**; a [skill] learning is one the retro numbers back up.
+
+With the user's consent, [skill] learnings become `skill-feedback` issues on this repo. That channel is designed to carry nothing about the user's code:
+
+- **Off by default**; `sdd-setup` asks, and the routing block records `Upstream feedback: on|off`.
+- **Allowlist, not redaction**: skill, step, a category from a closed set, counts, harness version, and one sentence the user types. Never repo or org names, URLs, ticket titles, paths, code, commit messages or error text.
+- **Previewed and approved per issue**, filed under the user's own account, publicly. `--dry-run` prints the bodies.
+- **Never from a non-interactive run**; drafts go on the epic for the user to file or discard. Private repos always confirm.
+- **A guard that blocks rather than rewrites**: URLs, repo names, existing paths, code, titles or error text in the body stop the filing.
+
+The full rules and template: `skills/close-epic/references/skill-feedback.md`. Planned next: regression evals built from fixed defects, and a scheduled routine that clusters feedback into PRs on this repo.
+
 ## Install
 
 ### As skills (any agent)

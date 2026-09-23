@@ -95,6 +95,7 @@ Write the block from [routing-block.md](routing-block.md) into the agent instruc
 - Edit `CLAUDE.md` if it exists, else `AGENTS.md`. If neither exists, ask which to create.
 - If `<!-- sdd-routing -->` is already present, replace that block in place. Never append a duplicate.
 - Fill in the mode line (`org` / `labels-only`) and the field names if any.
+- Ask about **upstream feedback**, default **off**: "When an epic closes, may `close-epic` propose skill-defect issues on syn54x/skills? Each one is shown to you first, contains only counts and category names (never repo names, URLs, titles, paths or code), and is filed under your GitHub account." Record `on` or `off` in the block. Show them the allowlisted template in `close-epic/references/skill-feedback.md` if they ask what leaves.
 
 Show the user the rendered block before writing. The block **disables competing planners** on purpose: with mattpocock's `to-spec` owning the spec and `to-tickets-plus` owning the plan, a second brainstorming or plan-writing skill produces plan files that nobody reads. Leave Superpowers, Compound Engineering and similar suites uninstalled in this repo; if they are installed globally, the block tells the agent not to route through them.
 
