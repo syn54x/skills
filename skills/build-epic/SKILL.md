@@ -113,9 +113,9 @@ Merges move the frontier. After each merge, recompute the ready queue (step 2) a
 
 ## 7. Close-out
 
-When every sub-issue is closed, run `/close-epic <epic#>`: it posts the summary comment, the `## Learnings`, and closes the epic. Then open the integration-branch PR to `main`, gate the full diff once as a whole with `/review-pr`, and hand the merge to the user.
+When every sub-issue is closed, run `/close-epic <epic#>`: it posts the summary comment, the `## Learnings`, and closes the epic. Then open the integration-branch PR to `main` and gate it with `/review-panel <pr>`: it runs `review-pr`'s spec and Coherence verdicts and a persona panel (correctness, testing, maintainability, standards and invariants, history, plus the conditionals the diff warrants), and posts one report. **FIX FIRST** → route the findings to the owning workers by `Files owned`, one fix round, scoped re-review. Otherwise hand the merge to the user with the report; candidate ADRs and terminology drift from the report go into `close-epic`'s Learnings.
 
-**Multi-repo:** one integration-branch PR **per repo**, each gated as a whole, handed to the user in dependency order (usually backend before frontend, so the API exists before the UI that calls it lands). Say explicitly which merges depend on which.
+**Multi-repo:** one integration-branch PR **per repo**, each gated with `/review-panel`, handed to the user in dependency order (usually backend before frontend, so the API exists before the UI that calls it lands). Say explicitly which merges depend on which.
 
 Report with one table: ticket → tier → PR → state (merged / ready-for-human / open), plus anything cut, deferred, or edited in the plan.
 
