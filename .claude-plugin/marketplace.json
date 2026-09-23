@@ -1,0 +1,29 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "syn54x",
+  "owner": {
+    "name": "Taylor",
+    "url": "https://github.com/syn54x"
+  },
+  "description": "Taylor's agent skills as a Claude Code plugin. The skills also install cross-tool with `npx skills add syn54x/skills`.",
+  "plugins": [
+    {
+      "name": "syn54x-skills",
+      "source": "./",
+      "description": "Taylor's agent skills: issue-native spec-driven development (sdd-setup, to-tickets-plus, build-epic, implement-issue, review-pr, sync-progress, close-epic) with agents and hooks for Claude Code, Cursor and Codex, plus scaffold-python-project, scaffold-frontend-project, prepare-release-notes, adhd and eli5.",
+      "version": "0.1.0",
+      "category": "engineering",
+      "keywords": [
+        "skills",
+        "sdd",
+        "spec-driven",
+        "github-issues",
+        "worktree",
+        "orchestration",
+        "code-review",
+        "scaffolding"
+      ],
+      "homepage": "https://github.com/syn54x/skills"
+    }
+  ]
+}

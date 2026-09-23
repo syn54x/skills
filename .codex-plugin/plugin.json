@@ -1,0 +1,42 @@
+{
+  "name": "syn54x-skills",
+  "version": "0.1.0",
+  "description": "Taylor's agent skills: issue-native spec-driven development (sdd-setup, to-tickets-plus, build-epic, implement-issue, review-pr, sync-progress, close-epic) with agents and hooks for Claude Code, Cursor and Codex, plus scaffold-python-project, scaffold-frontend-project, prepare-release-notes, adhd and eli5.",
+  "author": {
+    "name": "Taylor",
+    "url": "https://github.com/syn54x"
+  },
+  "homepage": "https://github.com/syn54x/skills",
+  "repository": "https://github.com/syn54x/skills",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "sdd",
+    "spec-driven",
+    "github-issues",
+    "worktree",
+    "orchestration",
+    "code-review",
+    "scaffolding"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "syn54x skills",
+    "shortDescription": "Issue-native SDD workflow plus scaffolding and writing skills.",
+    "longDescription": "Taylor's agent skills. The SDD set: to-tickets-plus hardens sub-issues with Files owned / Interfaces / Test scenarios / Verify, build-epic dispatches isolated workers in waves and gates each PR with a fresh reviewer, implement-issue runs one ticket to a PR, close-epic writes the summary; hooks refuse to stop without a recorded Verify run and refuse to remove a worktree with unpushed work (Codex has no custom-agent slot yet, so workers are plain subagent delegations). Also: scaffold-python-project, scaffold-frontend-project, prepare-release-notes, adhd, eli5.",
+    "developerName": "Taylor",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/syn54x/skills",
+    "defaultPrompt": [
+      "/sdd-setup",
+      "/to-tickets-plus 42",
+      "/build-epic 42",
+      "/implement-issue 103"
+    ]
+  }
+}
