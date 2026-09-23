@@ -39,7 +39,7 @@ Not adopted, and why: CCPM (unmaintained, wrong `gh-sub-issue` syntax), original
 
 | Skill | Description |
 |-------|-------------|
-| [`sdd-setup`](skills/sdd-setup/) | Once per repo: install and configure mattpocock/skills if missing, check `gh`, create the readiness and size labels, enable issue types on org repos, write the CLAUDE.md routing block, optionally install the Actions workflows |
+| [`sdd-setup`](skills/sdd-setup/) | Once per repo: install and configure mattpocock/skills if missing, check `gh`, create the readiness and size labels, enable issue types on org repos, pin the GitHub account when `gh` has several logins, write the CLAUDE.md routing block, optionally install the Actions workflows |
 | [`to-tickets-plus`](skills/to-tickets-plus/) | Run `/to-tickets`, then link sub-issues natively (across repos when a ticket belongs elsewhere), add **Files owned / Interfaces / Test scenarios / Verify**, size them, and pin one plan comment on the epic |
 | [`build-epic`](skills/build-epic/) | Orchestrator: ready queue → layers → parallel-safety check → isolated worker waves (3–5) → fresh review per PR → merge in dependency order → close. Multi-repo epics get one integration branch per repo |
 | [`implement-issue`](skills/implement-issue/) | One worker, one issue, one PR with `Closes #N`; identical locally and inside `claude-code-action` |
