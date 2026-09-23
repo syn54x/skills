@@ -25,6 +25,8 @@ Glossary for this skills package. Architecture terms (`module`, `interface`, `se
 | **Multi-repo epic** | An epic whose sub-issues live in more than one repo (e.g. a frontend epic with backend tickets). Tickets are identified by URL; each repo gets its own integration branch, worktrees and PRs; cross-repo blockers must be merged **and available** (API deployed, client generated) before the consumer is ready. |
 | **Slice gate / main gate** | `review-pr` gates a slice PR into the integration branch (one fresh reviewer, spec + quality). `review-panel` gates the PR to `main` once per epic (persona panel over one findings schema, plus review-pr's spec and Coherence verdicts). |
 | **Persona** | One read-only reviewer prompt in `review-panel/references/personas.md` with a fixed Focus; always-on (correctness, testing, maintainability, standards-and-invariants, history) or conditional on what the diff touches. |
+| **Retro** | Per-epic counts computed by `close-epic` from GitHub state alone (label events, marker comments, PR reviews) and posted under `<!-- sdd-retro -->`. Names which workflow step was weak. Stays in the user's repo. |
+| **Skill feedback** | A `skill-feedback` issue on syn54x/skills proposed by `close-epic` for a **[skill]** learning: allowlisted fields only (skill, step, closed-set category, counts, harness), off by default, previewed and approved per issue, never from a non-interactive run. The flywheel's only inbound channel. |
 | **Harness dispatch** | The one line of `build-epic` that differs per tool; `references/harness-dispatch.md` holds the concrete calls. |
 
 ## Non-goals (this repo)

@@ -85,7 +85,7 @@ For each ticket in the wave:
 2. Write the brief from [references/worker-brief.md](references/worker-brief.md). The brief is the ticket body verbatim plus the laws, the branch mechanics, and the report format. Workers get nothing from this conversation, so the brief is complete or the worker fails.
 3. Dispatch the brief to **one isolated worker per ticket, in its own worktree of that ticket's repo, branched from that repo's integration branch, with the whole wave running concurrently**. The concrete call depends on the harness: see [references/harness-dispatch.md](references/harness-dispatch.md). The worker runs `/implement-issue <url>` inside that worktree. In multi-repo mode the brief names the checkout the worker starts from; a worker never guesses which repo a ticket belongs to.
 
-Then upsert the wave comment on the epic under `<!-- sdd-wave -->` (see `sync-progress`): wave number, tickets, worker names, started-at.
+Then upsert the wave comment on the epic under `<!-- sdd-wave -->` (see `sync-progress`): wave number, tickets, worker names, started-at, and one line `Edges added: <consumer> ← <producer>, …` or `Edges added: none` listing every `--add-blocked-by` the safety check introduced since the plan comment. `close-epic`'s retro reads that line.
 
 ### Heartbeat
 

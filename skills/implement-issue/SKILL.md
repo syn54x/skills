@@ -92,6 +92,7 @@ Closes #<N>
 
 Ran the ticket's Verify block on `<short sha>`: passed.
 TDD: RED `<command>` failed as expected (<one line>); GREEN `<command>` passed (<n/n>).
+Verify block corrected: no   <!-- yes, plus what was wrong, when the block could not run as written -->
 
 ## Notes for the reviewer
 

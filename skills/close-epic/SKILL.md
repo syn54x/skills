@@ -1,14 +1,14 @@
 ---
 name: close-epic
-description: Close an epic once every sub-issue is closed — verify with gh, post one summary comment with the ticket → PR table and a Learnings section, and close the epic issue. Use at the end of build-epic or when the last sub-issue merges.
+description: Close an epic once every sub-issue is closed — verify with gh, post the summary comment with the ticket → PR table, compute the retro (numbers from GitHub state alone), classify the Learnings, optionally file skill defects upstream with the user's approval, and close the epic issue. Use at the end of build-epic or when the last sub-issue merges.
 disable-model-invocation: true
 ---
 
 # Close Epic
 
-Three `gh` calls and one honest summary. Never closes an epic with open sub-issues.
+A few `gh` calls and one honest summary. Never closes an epic with open sub-issues. Everything it computes comes from GitHub state (labels, assignees, marker comments, PR reviews), so it works the same on any host and needs nothing from the conversation.
 
-Usage: `/close-epic <epic#>`
+Usage: `/close-epic <epic#> [--dry-run]`
 
 ## 1. Check
 
@@ -37,9 +37,15 @@ URLs rather than numbers, so a multi-repo epic's table is unambiguous.
 
 Read each sub-issue's progress comment and each PR's review for anything flagged `DONE_WITH_CONCERNS`, anything that went to `ready-for-human`, and any plan edge that was added mid-build.
 
-## 3. Summary comment
+## 3. Retro
 
-Upsert on the epic under `<!-- sdd-summary -->` (see `sync-progress`):
+Compute the epic's numbers per [references/retro.md](references/retro.md): tickets by size, escalations (`needs-info`, `ready-for-human`, `blocked` label events), edges added mid-build (from the wave comment), fix rounds per PR (from `review-pr` verdicts), Verify-block corrections (from PR bodies), panel findings by severity and persona plus the dropped count (from the `review-panel` report), and claim-to-PR time. If installed as the plugin, `${CLAUDE_PLUGIN_ROOT}/scripts/sdd-retro.sh <epic url>` prints the JSON; the reference holds the portable `gh` form.
+
+Upsert it on the epic under `<!-- sdd-retro -->` (see `sync-progress`): a short table for humans, then the JSON in a fenced block. This comment stays in the user's repo; it may contain URLs and titles.
+
+## 4. Summary comment
+
+Upsert on the epic under `<!-- sdd-summary -->`:
 
 ```markdown
 <!-- sdd-summary -->
@@ -56,24 +62,39 @@ Integration branch `feat/invoices`: pinch-backend merged to `main` in #60, pinch
 
 ## Learnings
 
-- <what would have made the plan better: a missing edge, a Verify block that lied, a Files owned list that was too coarse>
-- <a repo convention that workers kept missing — candidate for CLAUDE.md>
-- <anything reusable across repos — only then write a `docs/solutions/<slug>.md`; otherwise this comment is the record>
+Each learning carries one tag:
+- **[repo]** <a convention workers kept missing, a Verify block that lied for this codebase → goes to CLAUDE.md or an ADR; name the file>
+- **[reusable]** <something true beyond this repo → `docs/solutions/<slug>.md`, only if genuinely reusable>
+- **[skill: <name> §<step>]** <the skill told the agent the wrong thing, or nothing, and the retro shows it → candidate for upstream feedback, step 5>
+
+Also carry forward from the `review-panel` report: candidate ADRs and terminology drift, each as a [repo] learning.
 
 ## Spec deltas
 
 <if the epic body has a Spec deltas section, confirm each ADDED / MODIFIED / REMOVED item shipped, or note which did not and why>
 ```
 
-Keep it under 40 lines. Facts only; no praise.
+Keep it under 40 lines. Facts only; no praise. The retro numbers are the evidence for every **[skill]** tag: a learning without a number behind it is an opinion, and it stays [repo].
 
-## 4. Close
+## 5. Upstream feedback (only with consent)
+
+**[skill]** learnings can become issues on `syn54x/skills` so the skills improve. This never happens silently. Follow [references/skill-feedback.md](references/skill-feedback.md) exactly; the short version:
+
+1. **Off unless on.** The routing block in `CLAUDE.md` / `AGENTS.md` must say `Upstream feedback: on`. Anything else, or no line, means skip this step entirely and say so in one line.
+2. **Allowlist, not redaction.** The issue body is built from the fixed template in the reference: skill, step, a failure category from the closed enum, the relevant retro counts, harness and `gh` version. Never the repo or org name, URLs, ticket titles, file paths, code, commit messages or error text. The only free text is one sentence the user types at confirmation.
+3. **Preview and confirm, every time.** Show the complete body. The user approves, edits, or skips each one. `--dry-run` stops here and prints the bodies.
+4. **No human, no filing.** In a non-interactive run (Actions, a headless worker), do not file. Write each would-be body as a draft under `<!-- sdd-feedback-draft -->` on the epic; the user files later with one command from the reference.
+5. **Private repos always confirm.** `gh repo view --json isPrivate`; if true, the draft path is the default for any run that cannot ask.
+6. **Guard before filing.** Run the outbound check (`${CLAUDE_PLUGIN_ROOT}/scripts/feedback-guard.sh`, or the checks listed in the reference by hand): any GitHub URL, the repo or org name, a path that exists in the checkout, or a fenced code block blocks the filing. The guard refuses; it never rewrites.
+7. **File as the user, visibly.** `gh issue create -R syn54x/skills --label skill-feedback` under the user's own account, or `--web` if they prefer to file from a browser. Tell them the issue is public and carries their GitHub identity.
+
+## 6. Close
 
 ```bash
 gh issue close "$EPIC" --reason completed --comment "All sub-issues closed; summary above."
 gh issue edit "$EPIC" --remove-label needs-plan 2>/dev/null || true
 ```
 
-## 5. Report
+## 7. Report
 
-One line to the user: epic closed, N tickets, M PRs, link to the summary comment. If you wrote a `docs/solutions/` file, name it.
+One line to the user: epic closed, N tickets, M PRs, link to the summary comment, and how many skill-feedback issues were filed, drafted, or skipped. If you wrote a `docs/solutions/` file, name it.
