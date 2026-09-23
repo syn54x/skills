@@ -1,11 +1,11 @@
 {
-  "name": "syn54x-skills",
+  "name": "syn54x",
   "interface": {
-    "displayName": "syn54x skills"
+    "displayName": "syn54x"
   },
   "plugins": [
     {
-      "name": "sdd",
+      "name": "syn54x-skills",
       "source": {
         "source": "local",
         "path": "."

@@ -11,7 +11,7 @@ One `Agent` call per ticket, all in the same response so they run concurrently:
 ```
 Agent(
   name: "worker-<N>",                 # resumable by name for the fix round
-  subagent_type: "sdd-worker",        # from the sdd plugin; omit to use general-purpose
+  subagent_type: "sdd-worker",        # from the syn54x-skills plugin; omit to use general-purpose
   model: "<mid tier | ceiling tier>", # per the tier rubric; ALWAYS set it — an omitted model inherits the session's, usually the most expensive
   isolation: "worktree",              # fresh worktree per agent
   prompt: <brief>
@@ -28,7 +28,7 @@ Agent(
 
 ## Codex
 
-Install the `sdd` plugin (`codex plugin marketplace add syn54x/skills`, then `/plugins` → install **sdd**) for the same Stop and worktree-remove gates as Claude Code; Codex's plugin spec has no custom-agent slot, so workers are plain delegations.
+Install the `syn54x-skills` plugin (`codex plugin marketplace add syn54x/skills`, then `/plugins` → install **syn54x-skills**) for the same Stop and worktree-remove gates as Claude Code; Codex's plugin spec has no custom-agent slot, so workers are plain delegations.
 
 Delegate one subagent per ticket, each told to create and work in its own worktree:
 
@@ -41,7 +41,7 @@ Codex subagents do not share your context, so the brief must be complete. Collec
 
 ## Cursor
 
-Install the `sdd` plugin (`/add-plugin sdd` once the marketplace is registered) for the `sdd-worker` / `sdd-reviewer` subagents and the `stop` and `beforeShellExecution` gates.
+Install the `syn54x-skills` plugin (`/add-plugin syn54x-skills` once the marketplace is registered) for the `sdd-worker` / `sdd-reviewer` subagents and the `stop` and `beforeShellExecution` gates.
 
 One background agent per ticket, each in its own worktree (ask for worktree isolation explicitly; Cursor subagents share the checkout by default):
 

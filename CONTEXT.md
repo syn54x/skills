@@ -6,7 +6,7 @@ Glossary for this skills package. Architecture terms (`module`, `interface`, `se
 
 | Term | Meaning |
 |------|---------|
-| **Skill package** | A directory with `SKILL.md` (+ optional supporting files) installable via `npx skills add`. |
+| **Skill package** | A directory under `skills/` with `SKILL.md` (+ optional supporting files), installable via `npx skills add` or as part of the `syn54x-skills` plugin. |
 | **Orchestrator** | `SKILL.md` — discovery, workflow, feature matrix, and policy. Thin interface over templates. |
 | **Template bag** | `reference.md` — sole owner of file bodies agents copy into a new project. |
 | **Feature matrix** | Table in the orchestrator: flag → deps / files / prek Δ / workflows / verify. The seam between policy and templates. |

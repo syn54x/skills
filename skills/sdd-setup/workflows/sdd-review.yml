@@ -37,7 +37,7 @@ jobs:
           # ---------------------------------------------------------------------
           track_progress: true
           plugins: |
-            sdd@syn54x-skills
+            syn54x-skills@syn54x
           plugin_marketplaces: |
             https://github.com/syn54x/skills.git
           prompt: |

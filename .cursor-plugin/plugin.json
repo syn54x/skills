@@ -1,8 +1,8 @@
 {
-  "name": "sdd",
-  "displayName": "SDD (issue-native)",
+  "name": "syn54x-skills",
+  "displayName": "syn54x skills",
   "version": "0.1.0",
-  "description": "Issue-native spec-driven development: epic = spec, sub-issues = plan, worktree worker waves, fresh reviewer per PR. Adds agents and hooks on top of the cross-tool skills.",
+  "description": "Taylor's agent skills: issue-native spec-driven development (sdd-setup, to-tickets-plus, build-epic, implement-issue, review-pr, sync-progress, close-epic) with agents and hooks for Claude Code, Cursor and Codex, plus coordinate, scaffold-python-project, scaffold-frontend-project, prepare-release-notes, adhd and eli5.",
   "author": {
     "name": "Taylor",
     "url": "https://github.com/syn54x"
@@ -11,19 +11,21 @@
   "repository": "https://github.com/syn54x/skills",
   "license": "MIT",
   "keywords": [
+    "skills",
     "sdd",
     "spec-driven",
     "github-issues",
-    "sub-issues",
     "worktree",
     "orchestration",
-    "code-review"
+    "code-review",
+    "scaffolding"
   ],
   "category": "engineering",
   "tags": [
     "sdd",
     "github-issues",
-    "orchestration"
+    "orchestration",
+    "scaffolding"
   ],
   "skills": "./skills/",
   "agents": "./agents/",

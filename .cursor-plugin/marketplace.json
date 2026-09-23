@@ -1,17 +1,17 @@
 {
   "$schema": "https://cursor.com/schemas/cursor-plugin/marketplace.json",
-  "name": "syn54x-skills",
+  "name": "syn54x",
   "owner": {
     "name": "Taylor"
   },
   "metadata": {
-    "description": "syn54x/skills as Cursor plugins. The skills also install cross-tool with `npx skills add syn54x/skills`."
+    "description": "Taylor's agent skills as a Cursor plugin. The skills also install cross-tool with `npx skills add syn54x/skills`."
   },
   "plugins": [
     {
-      "name": "sdd",
+      "name": "syn54x-skills",
       "source": ".",
-      "description": "Issue-native spec-driven development: epic = spec, sub-issues = plan, worktree worker waves, fresh reviewer per PR. Adds agents and hooks on top of the cross-tool skills."
+      "description": "Taylor's agent skills: issue-native spec-driven development (sdd-setup, to-tickets-plus, build-epic, implement-issue, review-pr, sync-progress, close-epic) with agents and hooks for Claude Code, Cursor and Codex, plus coordinate, scaffold-python-project, scaffold-frontend-project, prepare-release-notes, adhd and eli5."
     }
   ]
 }

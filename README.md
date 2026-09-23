@@ -6,13 +6,13 @@ Public [Agent Skills](https://agentskills.io) for coding agents (Cursor, Claude 
 
 | Skill | Description |
 |-------|-------------|
-| [`coordinate`](coordinate/) | Run a batch of implementation work through sub-agents — research, brief, dispatch, and gate their PRs |
-| [`coordinate-team`](coordinate-team/) | Run a batch of implementation work through Claude Code Agent Teams — research, brief, spawn teammates, and gate their plans and PRs |
-| [`adhd`](adhd/) | Explains a topic in the shortest possible form — tiny sentences, lead with the point, then stop |
-| [`eli5`](eli5/) | Explains a complex topic in plain language with one concrete analogy |
-| [`prepare-release-notes`](prepare-release-notes/) | Drafts bloggy GitHub Release highlights from the delta since the last tag and prints the release command — never cuts the release |
-| [`scaffold-python-project`](scaffold-python-project/) | Opinionated Python project bootstrap with uv, prek, ruff, ty, pytest, zensical, GitHub Actions, and optional CLI/API/DB/AI stacks |
-| [`scaffold-frontend-project`](scaffold-frontend-project/) | Opinionated Vite + React SPA bootstrap with pnpm, Biome, TanStack Router/Query, Tailwind, shadcn/ui, prek, vitest, and GitHub Actions |
+| [`coordinate`](skills/coordinate/) | Run a batch of implementation work through sub-agents — research, brief, dispatch, and gate their PRs |
+| [`coordinate-team`](skills/coordinate-team/) | Run a batch of implementation work through Claude Code Agent Teams — research, brief, spawn teammates, and gate their plans and PRs |
+| [`adhd`](skills/adhd/) | Explains a topic in the shortest possible form — tiny sentences, lead with the point, then stop |
+| [`eli5`](skills/eli5/) | Explains a complex topic in plain language with one concrete analogy |
+| [`prepare-release-notes`](skills/prepare-release-notes/) | Drafts bloggy GitHub Release highlights from the delta since the last tag and prints the release command — never cuts the release |
+| [`scaffold-python-project`](skills/scaffold-python-project/) | Opinionated Python project bootstrap with uv, prek, ruff, ty, pytest, zensical, GitHub Actions, and optional CLI/API/DB/AI stacks |
+| [`scaffold-frontend-project`](skills/scaffold-frontend-project/) | Opinionated Vite + React SPA bootstrap with pnpm, Biome, TanStack Router/Query, Tailwind, shadcn/ui, prek, vitest, and GitHub Actions |
 
 ### Issue-native SDD
 
@@ -91,26 +91,26 @@ npx skills add syn54x/skills --skill coordinate --agent '*'
 
 ### As a plugin (Claude Code, Cursor, Codex)
 
-The `sdd` plugin bundles the seven SDD skills with what `npx skills add` cannot install: two agents (`sdd-worker` on a mid-tier model in a worktree, `sdd-reviewer` read-only + `gh`), hooks (a stop-time verify gate, a worktree-remove guard) and helper scripts (`ready.sh`, `layers.py`, `progress-comment.sh`).
+The `syn54x-skills` plugin bundles every skill in this repo with what `npx skills add` cannot install for the SDD set: two agents (`sdd-worker` on a mid-tier model in a worktree, `sdd-reviewer` read-only + `gh`), hooks (a stop-time verify gate, a worktree-remove guard) and helper scripts (`ready.sh`, `layers.py`, `progress-comment.sh`).
 
 ```
 # Claude Code
 /plugin marketplace add syn54x/skills
-/plugin install sdd@syn54x-skills
+/plugin install syn54x-skills@syn54x
 
 # Cursor (Agent chat)
-/add-plugin sdd            # after the marketplace is registered or published at cursor.com/marketplace/publish
+/add-plugin syn54x-skills            # after the marketplace is registered or published at cursor.com/marketplace/publish
 
 # Codex
 codex plugin marketplace add syn54x/skills
-codex                      # then /plugins → syn54x skills → sdd → Install; restart Codex
+codex                      # then /plugins → syn54x → syn54x-skills → Install; restart Codex
 ```
 
 What each host gets:
 
 | | npx skills | Claude Code plugin | Cursor plugin | Codex plugin |
 |---|---|---|---|---|
-| the seven skills | yes | yes | yes | yes |
+| all skills in this repo | yes | yes | yes | yes |
 | verify gate on stop | prose only | `Stop` / `SubagentStop` hook | `stop` / `subagentStop` hook | `Stop` / `SubagentStop` hook |
 | worktree-remove guard | prose only | `WorktreeRemove` + `PreToolUse` hook | `beforeShellExecution` hook | `PreToolUse` hook |
 | `sdd-worker`, `sdd-reviewer` agents | no | yes, with worktree isolation | yes (`readonly` reviewer; ask for worktree isolation) | no: Codex plugins have no agent slot yet |
@@ -119,6 +119,6 @@ What each host gets:
 
 The Cursor and Codex manifests are written against their published schemas and the same layout Compound Engineering and Pydantic ship, but the workflow has only been exercised end to end in Claude Code so far.
 
-Then, in each target repo: `/sdd-setup`. It installs and configures mattpocock/skills first if the repo does not have them. For the cloud path, it copies `sdd-implement.yml` and `sdd-review.yml` into `.github/workflows/`; add an `ANTHROPIC_API_KEY` secret or switch the templates to OIDC.
+Then, for the SDD workflow, in each target repo: `/sdd-setup`. It installs and configures mattpocock/skills first if the repo does not have them. For the cloud path, it copies `sdd-implement.yml` and `sdd-review.yml` into `.github/workflows/`; add an `ANTHROPIC_API_KEY` secret or switch the templates to OIDC.
 
-Skills in this repo follow the [Agent Skills](https://agentskills.io) format (`SKILL.md` with YAML frontmatter). The SDD skills live under `skills/` because that directory is the plugin's skill set for all three hosts; the other skills stay at the root. Plugin manifests live in `.claude-plugin/`, `.cursor-plugin/`, `.codex-plugin/` and `.agents/plugins/`; the extras are the root-level `agents/`, `hooks/` and `scripts/`, which `npx skills add` ignores.
+Skills in this repo follow the [Agent Skills](https://agentskills.io) format (`SKILL.md` with YAML frontmatter). All skills live under `skills/`, which is the plugin's skill set for all three hosts. Plugin manifests live in `.claude-plugin/`, `.cursor-plugin/`, `.codex-plugin/` and `.agents/plugins/`; the extras are the root-level `agents/`, `hooks/` and `scripts/`, which `npx skills add` ignores.
