@@ -40,7 +40,7 @@ Not adopted, and why: CCPM (unmaintained, wrong `gh-sub-issue` syntax), original
 
 | Skill | Description |
 |-------|-------------|
-| [`sdd-setup`](skills/sdd-setup/) | Once per repo: install and configure mattpocock/skills if missing, check `gh`, create the readiness and size labels, enable issue types on org repos, write the CLAUDE.md routing block, optionally install the Actions workflows |
+| [`setup-syn54x-skills`](skills/setup-syn54x-skills/) | Once per repo, after `/setup-matt-pocock-skills`: check that mattpocock/skills is installed and configured for GitHub Issues, check `gh`, create the readiness and size labels, enable issue types on org repos, write the routing block into CLAUDE.md or AGENTS.md, optionally install the Actions workflows |
 | [`to-tickets-plus`](skills/to-tickets-plus/) | Run `/to-tickets`, then link sub-issues natively (across repos when a ticket belongs elsewhere), add **Files owned / Interfaces / Test scenarios / Verify**, size them, and pin one plan comment on the epic |
 | [`build-epic`](skills/build-epic/) | Orchestrator: ready queue → layers → parallel-safety check → isolated worker waves (3–5) → fresh review per PR → merge in dependency order → close. Multi-repo epics get one integration branch per repo |
 | [`implement-issue`](skills/implement-issue/) | One worker, one issue, one PR with `Closes #N`; identical locally and inside `claude-code-action` |
@@ -60,7 +60,7 @@ Not adopted, and why: CCPM (unmaintained, wrong `gh-sub-issue` syntax), original
 
 Dispatch is harness-agnostic: `skills/build-epic/references/harness-dispatch.md` gives the concrete call for Claude Code (`Agent` + `isolation: "worktree"`, Agent Teams flag **unset**), Codex (subagent per worktree), Cursor (background agent per worktree), and a sequential fallback for anything else. Everything below the dispatch line is `gh` + prose and identical across tools.
 
-Leave Superpowers, Compound Engineering and similar suites **uninstalled in target repos**; the routing block written by `sdd-setup` disables competing planners.
+Leave Superpowers, Compound Engineering and similar suites **uninstalled in target repos**; the routing block written by `setup-syn54x-skills` disables competing planners.
 
 #### How the skills improve
 
@@ -68,7 +68,7 @@ Every epic leaves a trail in GitHub. `close-epic` turns it into a **retro** (tic
 
 With the user's consent, [skill] learnings become `skill-feedback` issues on this repo. That channel is designed to carry nothing about the user's code:
 
-- **Off by default**; `sdd-setup` asks, and the routing block records `Upstream feedback: on|off`.
+- **Off by default**; `setup-syn54x-skills` asks, and the routing block records `Upstream feedback: on|off`.
 - **Allowlist, not redaction**: skill, step, a category from a closed set, counts, harness version, and one sentence the user types. Never repo or org names, URLs, ticket titles, paths, code, commit messages or error text.
 - **Previewed and approved per issue**, filed under the user's own account, publicly. `--dry-run` prints the bodies.
 - **Never from a non-interactive run**; drafts go on the epic for the user to file or discard. Private repos always confirm.
@@ -85,7 +85,7 @@ npx skills add syn54x/skills --skill scaffold-python-project
 npx skills add syn54x/skills --skill scaffold-frontend-project
 
 # the SDD set
-npx skills add syn54x/skills --skill sdd-setup --skill to-tickets-plus --skill build-epic \
+npx skills add syn54x/skills --skill setup-syn54x-skills --skill to-tickets-plus --skill build-epic \
   --skill implement-issue --skill review-pr --skill sync-progress --skill close-epic
 npx skills add mattpocock/skills          # the spine: to-spec, to-tickets, tdd, …
 ```
@@ -132,6 +132,11 @@ What each host gets:
 
 The Cursor and Codex manifests are written against their published schemas and the same layout Compound Engineering and Pydantic ship, but the workflow has only been exercised end to end in Claude Code so far.
 
-Then, for the SDD workflow, in each target repo: `/sdd-setup`. It installs and configures mattpocock/skills first if the repo does not have them. For the cloud path, it copies `sdd-implement.yml` and `sdd-review.yml` into `.github/workflows/`; add an `ANTHROPIC_API_KEY` secret or switch the templates to OIDC.
+Then, for the SDD workflow, in each target repo:
+
+1. Install mattpocock/skills yourself (`npx skills add mattpocock/skills`, or the `mattpocock-skills@mattpocock` plugin; not both) and run `/setup-matt-pocock-skills`, choosing **GitHub** as the tracker. That skill is user-invoked only, so no agent can run it for you.
+2. Run `/setup-syn54x-skills`. It stops with the exact command if either half of step 1 is missing, then adds the labels, issue types and routing block. For the cloud path it copies `sdd-implement.yml` and `sdd-review.yml` into `.github/workflows/`; add an `ANTHROPIC_API_KEY` secret or switch the templates to OIDC.
 
 Skills in this repo follow the [Agent Skills](https://agentskills.io) format (`SKILL.md` with YAML frontmatter). All skills live under `skills/`, which is the plugin's skill set for all three hosts. Plugin manifests live in `.claude-plugin/`, `.cursor-plugin/`, `.codex-plugin/` and `.agents/plugins/`; the extras are the root-level `agents/`, `hooks/` and `scripts/`, which `npx skills add` ignores.
+
+Adding a skill: create `skills/<name>/SKILL.md` and add `./skills/<name>` to the `skills` array in `.claude-plugin/plugin.json`. The array is what makes `npx skills ls` group the pack under "Syn54x Skills" instead of "General". `scripts/check-plugin-skills.sh` fails when the array and the directory disagree; it runs in CI and as a [prek](https://prek.j178.dev) hook (`prek install` once).

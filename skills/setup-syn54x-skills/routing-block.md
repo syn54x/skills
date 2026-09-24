@@ -1,6 +1,6 @@
 # Routing block
 
-Paste into `CLAUDE.md` (or `AGENTS.md`) of the target repo. Replace the `<...>` slots. The markers let `sdd-setup` rewrite the block in place on re-run.
+Paste into `CLAUDE.md` (or `AGENTS.md`) of the target repo. Replace the `<...>` slots. The markers let `setup-syn54x-skills` rewrite the block in place on re-run.
 
 ```markdown
 <!-- sdd-routing -->

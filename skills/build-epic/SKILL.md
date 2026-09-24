@@ -20,7 +20,7 @@ gh api "repos/$(gh repo view --json nameWithOwner --jq .nameWithOwner)/issues/$E
   --jq '[.[] | select(.body | startswith("<!-- sdd-plan -->"))] | length'
 ```
 
-Stop and say why if: the epic is closed; it has no sub-issues (run `/to-tickets-plus` first); the plan comment is missing (same fix); or the routing block from `/sdd-setup` is absent from `CLAUDE.md`/`AGENTS.md`.
+Stop and say why if: the epic is closed; it has no sub-issues (run `/to-tickets-plus` first); the plan comment is missing (same fix); or the routing block from `/setup-syn54x-skills` is absent from `CLAUDE.md`/`AGENTS.md`.
 
 **Which repos?** Sub-issues may live in more than one repo (a frontend epic with backend tickets):
 
@@ -28,7 +28,7 @@ Stop and say why if: the epic is closed; it has no sub-issues (run `/to-tickets-
 gh issue view "$EPIC" --json subIssues --jq '[.subIssues.nodes[].repository.nameWithOwner] | unique'
 ```
 
-More than one → **multi-repo mode**. You need a local checkout of every repo listed. Default: sibling directories named after the repo (`../pinch-backend` next to `../pinch-frontend`); if one is missing, ask for its path or clone it. Every repo must have run `/sdd-setup` (labels, routing block). From here on, identify tickets by **URL**, never by bare number: `gh issue view`, `gh issue edit` and `gh pr view` all accept URLs, and a bare `#12` is ambiguous across repos.
+More than one → **multi-repo mode**. You need a local checkout of every repo listed. Default: sibling directories named after the repo (`../pinch-backend` next to `../pinch-frontend`); if one is missing, ask for its path or clone it. Every repo must have run `/setup-syn54x-skills` (labels, routing block). From here on, identify tickets by **URL**, never by bare number: `gh issue view`, `gh issue edit` and `gh pr view` all accept URLs, and a bare `#12` is ambiguous across repos.
 
 Read the plan comment and the epic body once. Read each repo's laws (`CLAUDE.md`, `AGENTS.md`, `CONTEXT.md`, ADRs) once. You should be able to write every brief without opening another file.
 

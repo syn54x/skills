@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 `/to-tickets` (mattpocock/skills) cuts the tracer-bullet tickets. This skill runs it, then makes each ticket **buildable without conversation** and makes the epic carry the plan. Nothing here replaces the upstream skill, so `npx skills update` keeps working.
 
-**Prerequisites.** `to-tickets` is installed and `/sdd-setup` has run. If `to-tickets` is missing, stop: `npx skills add mattpocock/skills --skill to-tickets`.
+**Prerequisites.** `to-tickets` is installed and `/setup-syn54x-skills` has run. If `to-tickets` is missing, stop: `npx skills add mattpocock/skills --skill to-tickets`.
 
 ## 1. Cut the tickets
 
@@ -32,7 +32,7 @@ gh issue create -R owner/pinch-backend --title "<same title>" --body-file /tmp/b
 gh issue close "$OLD" --reason "not planned" --comment "Moved to <new url>; it belongs in pinch-backend."
 ```
 
-Sub-issues and blocked-by links work across repos under the same owner, and every `gh issue` command accepts a URL, so from here on refer to cross-repo tickets by URL. The ticket's `Files owned` are relative to **its own** repo; a ticket never lists paths in two repos, since that is two tickets. Each repo involved must have run `/sdd-setup`.
+Sub-issues and blocked-by links work across repos under the same owner, and every `gh issue` command accepts a URL, so from here on refer to cross-repo tickets by URL. The ticket's `Files owned` are relative to **its own** repo; a ticket never lists paths in two repos, since that is two tickets. Each repo involved must have run `/setup-syn54x-skills`.
 
 ## 2. Link natively
 
