@@ -1,43 +1,57 @@
 ---
-name: sdd-setup
-description: Configure a repo for the issue-native spec-driven workflow — install and configure mattpocock/skills if missing, check the gh version, create the readiness and size labels, enable issue types on org repos, write the CLAUDE.md routing block, and optionally install the GitHub Actions workflows. Run once per repo before build-epic or implement-issue.
+name: setup-syn54x-skills
+description: Configure a repo for the syn54x skills. Checks that mattpocock/skills is installed and configured for GitHub Issues, checks the gh version, creates the readiness and size labels, enables issue types on org repos, writes the routing block into CLAUDE.md or AGENTS.md, and optionally installs the GitHub Actions workflows. Run once per repo before to-tickets-plus, build-epic or implement-issue.
 disable-model-invocation: true
 ---
 
-# SDD Setup
+# Setup syn54x skills
 
 Configure the repo so specs, plans and progress all live in **GitHub Issues** and the build skills can find them. Prompt-driven: explore, present, confirm, then write.
 
-This skill assumes [mattpocock/skills](https://github.com/mattpocock/skills) is installed and its own setup has run: that setup owns the issue tracker choice and the base triage labels, and this skill adds what the build side needs on top. Step 0 gets the user there if they are not.
+Only the SDD set needs this: `to-tickets-plus`, `build-epic`, `implement-issue`, `review-pr`, `review-panel`, `sync-progress`, `close-epic`. The rest of the pack (`scaffold-python-project`, `scaffold-frontend-project`, `prepare-release-notes`, `adhd`, `eli5`) works with no per-repo configuration.
+
+The SDD set sits on [mattpocock/skills](https://github.com/mattpocock/skills): its setup owns the issue tracker choice and the base triage labels, and this skill adds what the build side needs on top. Step 0 checks that the user has done both. This skill never installs or configures the upstream pack; both are the user's to run.
 
 ## 0. The spine: mattpocock/skills
 
-Check what is available before asking anything:
+Check, then stop or continue. Never install or configure anything in this step.
 
-- Are `to-spec`, `to-tickets`, `tdd`, `grill-with-docs` and `setup-matt-pocock-skills` among your available skills? (In Claude Code they may appear as `mattpocock-skills:<name>` from the plugin, or as bare names from `npx skills add`.)
-- Does `docs/agents/issue-tracker.md` exist in the repo? That file is what `setup-matt-pocock-skills` writes, so its presence means the upstream setup has already run here.
+**Installed?** Are `to-spec`, `to-tickets`, `tdd`, `grill-with-docs` and `setup-matt-pocock-skills` among your available skills, or present on disk (`~/.agents/skills/<name>`, `.agents/skills/<name>`, `~/.claude/skills/<name>`, or the `mattpocock-skills` plugin)? Any one path counts.
 
-Then:
+If not, print this and stop:
 
-| Found | Do |
-|---|---|
-| skills present, `docs/agents/issue-tracker.md` present | continue to step 1 |
-| skills present, file missing | invoke `/setup-matt-pocock-skills`, choose **GitHub** as the tracker and keep the default triage labels; when it finishes, continue to step 1 |
-| skills missing | offer the install below; if the user declines, stop and say the SDD skills cannot run without `to-spec` and `to-tickets` |
+> The syn54x SDD skills sit on mattpocock/skills, which is not installed. Install it, then run `/setup-syn54x-skills` again.
+>
+> As skills (any agent):
+>
+> ```bash
+> npx skills add mattpocock/skills              # this project only
+> npx skills add mattpocock/skills -g           # every project
+> npx skills add mattpocock/skills --agent '*'  # every detected agent
+> ```
+>
+> As a Claude Code plugin (editable in place):
+>
+> ```
+> /plugin marketplace add mattpocock/skills
+> /plugin install mattpocock-skills@mattpocock
+> ```
+>
+> Pick one form; do not install both. New skills may need a session restart before they are invocable.
 
-The install writes into the user's agent directories, so ask before running it and let them pick the scope:
+**Configured?** Does `docs/agents/issue-tracker.md` exist in the repo? `setup-matt-pocock-skills` writes it, so its presence means the upstream setup has run here.
 
-```bash
-npx skills add mattpocock/skills            # this project only (default)
-npx skills add mattpocock/skills -g         # every project
-npx skills add mattpocock/skills --agent '*'  # every detected agent
-```
+If not, print this and stop:
 
-Claude Code users may prefer the plugin form instead, which is editable in place: `/plugin marketplace add mattpocock/skills` then `/plugin install mattpocock-skills@mattpocock`. Either is fine; do not install both.
+> mattpocock/skills is installed but not configured for this repo. Run `/setup-matt-pocock-skills`, choose **GitHub** as the issue tracker and keep the default triage labels, then run `/setup-syn54x-skills` again.
 
-After the install, the new skills may not be visible until the session reloads. If `/setup-matt-pocock-skills` is not yet invocable, tell the user to restart the session and run `/sdd-setup` again; do not try to reproduce the upstream setup by hand.
+`setup-matt-pocock-skills` is user-invoked only, so the user has to type it; do not try to reproduce it by hand.
 
-If the harness has no slash commands, "invoke" means: open that skill's `SKILL.md` where it was installed and follow it.
+**GitHub?** Read `docs/agents/issue-tracker.md`. Its first heading names the tracker. If it is not GitHub, stop:
+
+> `docs/agents/issue-tracker.md` says issues live in <tracker>. The SDD skills need GitHub Issues: sub-issues, `--blocked-by` edges and the ready queue only exist there. Re-run `/setup-matt-pocock-skills` and choose GitHub, or skip the SDD set for this repo.
+
+All three checks pass → step 1.
 
 ## 1. Preflight
 
@@ -50,8 +64,9 @@ gh repo view --json nameWithOwner,owner --jq '{repo: .nameWithOwner, ownerType: 
 - `gh` older than 2.94 → stop and tell the user to upgrade. Nothing else works without native sub-issues and dependencies.
 - `ownerType` is `Organization` → **org mode**: issue types and issue fields are available.
 - `ownerType` is `User` → **labels-only mode**: personal repos have no issue types or fields; sizes and priority are labels.
+- `ownerType` is `null` → `gh repo view` hides it on some versions; fall back to `gh api repos/<owner>/<repo> --jq .owner.type`.
 
-Also check: does `CLAUDE.md` or `AGENTS.md` exist? Does either already contain `<!-- sdd-routing -->`? Is `.github/workflows/` present?
+Also check: which of `CLAUDE.md` or `AGENTS.md` did the upstream setup write its `## Agent skills` block into? That is the file the routing block goes in. Does it already contain `<!-- sdd-routing -->`? Is `.github/workflows/` present?
 
 ## 2. Labels
 
@@ -68,7 +83,7 @@ gh label create size:M          --color BFD4F2 --description "Needs a plan; one 
 gh label create size:L          --color F9D0C4 --description "Cross-cutting or multi-worker; local waves only" --force
 ```
 
-`needs-triage`, `wontfix` and the rest of the canonical triage vocabulary come from `/setup-matt-pocock-skills`; do not redefine them here.
+`needs-triage`, `wontfix` and the rest of the canonical triage vocabulary belong to mattpocock's `triage` skill, which creates them on first use; do not redefine them here.
 
 ## 3. Org mode extras (skip in labels-only mode)
 
@@ -90,9 +105,8 @@ Issue **fields** (Priority, Effort) are optional. If the user wants them, they c
 
 ## 4. Routing block
 
-Write the block from [routing-block.md](routing-block.md) into the agent instructions file:
+Write the block from [routing-block.md](routing-block.md) into the file found in step 1, below the `## Agent skills` section:
 
-- Edit `CLAUDE.md` if it exists, else `AGENTS.md`. If neither exists, ask which to create.
 - If `<!-- sdd-routing -->` is already present, replace that block in place. Never append a duplicate.
 - Fill in the mode line (`org` / `labels-only`) and the field names if any.
 - Ask about **upstream feedback**, default **off**: "When an epic closes, may `close-epic` propose skill-defect issues on syn54x/skills? Each one is shown to you first, contains only counts and category names (never repo names, URLs, titles, paths or code), and is filed under your GitHub account." Record `on` or `off` in the block. Show them the allowlisted template in `close-epic/references/skill-feedback.md` if they ask what leaves.
@@ -113,4 +127,4 @@ Then tell the user what to add and do not do it for them:
 
 ## 6. Done
 
-Report in one table: what existed, what was created, what was skipped and why, including whether step 0 installed or configured mattpocock/skills. Point at the next step: `/grill-with-docs` → `/to-spec` → `/to-tickets-plus`, then `/build-epic <epic#>` or a `ready-for-agent` label.
+Report in one table: what existed, what was created, what was skipped and why. Point at the next step: `/grill-with-docs` → `/to-spec` → `/to-tickets-plus`, then `/build-epic <epic#>` or a `ready-for-agent` label.
