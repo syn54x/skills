@@ -84,7 +84,7 @@ Spec-driven development where the **spec is an epic issue**, the **plan is its s
 #### How to use it
 
 ```mermaid
-flowchart LR
+flowchart TD
     grill["`**/grill-with-docs**
 stress-test the idea`"]
     spec["`**/to-spec**
