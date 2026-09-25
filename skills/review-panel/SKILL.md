@@ -1,6 +1,6 @@
 ---
 name: review-panel
-description: Panel review for a pull request that merges to main — the integration branch of an epic, or any large final diff. Runs review-pr's spec and coherence verdicts, then a set of reviewer personas in parallel (correctness, testing, maintainability, standards and invariants, history, plus security, reliability, adversarial, data-migration and API-contract when the diff warrants them), dedups their findings under one severity and confidence scale, and posts one report for the human who merges. Use once per epic, never per slice.
+description: Panel review for a pull request that merges to main — the integration branch of an epic, or any large final diff. Runs review-pr's spec and coherence verdicts, then a set of reviewer personas in parallel (correctness, testing, maintainability, standards and invariants, history, plus security, reliability, adversarial, data-migration and API-contract when the diff warrants them), dedups their findings under one severity and confidence scale, and writes one report for the human who merges. Use once per epic, never per slice.
 disable-model-invocation: true
 ---
 
@@ -43,7 +43,7 @@ Run the epic's aggregate Verify (each merged ticket's Verify block, or the repo'
 
 ## 2. Spec and Coherence first
 
-Run `/review-pr <pr>` in its **full-epic mode**: spec verdict against the epic body, Coherence across slices, Verify result. Keep its output verbatim for the report. If Spec fails outright (a story missing, an Out-of-scope item built), you may still run the panel, but say up front that the PR is not mergeable regardless of what the panel finds.
+Run `/review-pr <pr>` in its **full-epic mode**: spec verdict against the epic body, Coherence across slices, Verify result. Keep its output verbatim for the report. Stop before `review-pr`'s Post step — that markdown is a section of this report, not its own PR comment. If Spec fails outright (a story missing, an Out-of-scope item built), you may still run the panel, but say up front that the PR is not mergeable regardless of what the panel finds.
 
 ## 3. Pick the personas
 
@@ -79,13 +79,15 @@ Rules every persona carries:
 
 ## 5. Merge and dedup
 
-Two findings are the same when they point at the same file and overlapping lines and describe the same failure. Merge them: keep the **higher severity**, keep the **higher confidence** (two personas agreeing is stronger evidence), union the persona list, prefer the more specific `what`. Never lower a severity when merging. Assign stable numbers `#1…` in order of severity then file.
+Two findings are the same when they point at the same file and overlapping lines and describe the same failure. Merge them: keep the **higher severity**, keep the **higher confidence** (two personas agreeing is stronger evidence), union the persona list, prefer the more specific `what`. Never lower a severity when merging. Assign stable ids `F1`, `F2`, … in order of severity then file. Later comments cite these ids. Never a bare `#N`: GitHub autolinks that to an issue or pull request.
 
 Drop anything under 80 after merging; count what was dropped and say so under Coverage. Anything a persona marked `cannot_verify` goes to its own list, not to findings.
 
 ## 6. Report
 
-Post **one** PR review as a comment; never `--approve` or `--request-changes`. The merge is the user's.
+Show the finished report to the user, then ask one question: post this as a PR comment? Post only after they say to post it. Agreement with the verdict is not a yes. Never `--approve` or `--request-changes`. The merge is the user's.
+
+A no leaves the report in the conversation. Do not comment, and do not write a report link into the epic progress comment.
 
 ```markdown
 ## Verdict: MERGE | FIX FIRST | HUMAN DECISION
@@ -99,7 +101,7 @@ Post **one** PR review as a comment; never `--approve` or `--request-changes`. T
 
 ## Findings
 ### Critical
-- #1 `correctness`+`adversarial` — `src/billing/invoice.ts:88` @ `<sha7>` — conf 92 — <title>
+- F1 `correctness`+`adversarial` — `src/billing/invoice.ts:88` @ `<sha7>` — conf 92 — <title>
   <what is wrong> · <why it matters> · <fix, if not obvious> · verified by: <what the persona checked>
 ### Important
 …
@@ -123,16 +125,17 @@ Verify: passed | failed on `<sha7>` (`<command>`).
 
 Verdict rule: any Critical, or Spec FAIL, or Verify red → **FIX FIRST**. Only Important findings, or a Coherence disagreement that needs a product call → **HUMAN DECISION**. Otherwise **MERGE**.
 
-Then update the epic's progress: upsert under `<!-- sdd-wave -->` via `sync-progress` with the verdict and the report link.
+After the comment is posted, update the epic's progress: upsert under `<!-- sdd-wave -->` via `sync-progress` with the verdict and the report link.
 
 ## 7. Route
 
-- **FIX FIRST** → the orchestrator sends Critical and Important findings back to the workers that own the files (by ticket, from `Files owned`), one fix round each, then a **scoped re-review**: one persona (`correctness`, or the persona that raised the finding) verdicts each finding `ADDRESSED` / `NOT ADDRESSED` and inspects the fix diff only. Not a fresh panel.
+- **FIX FIRST** → the orchestrator sends Critical and Important findings back to the workers that own the files (by ticket, from `Files owned`), one fix round each, then a **scoped re-review**: one persona (`correctness`, or the persona that raised the finding) verdicts each finding by id (`F1` `ADDRESSED` / `NOT ADDRESSED`) and inspects the fix diff only. Not a fresh panel. Cite `F1`, never `#1`.
 - **HUMAN DECISION** and **MERGE** → hand to the user with the report. Candidate ADRs and terminology drift go to `close-epic`'s Learnings.
 
 ## Guardrails
 
 - Once per epic, on the PR to `main`. A panel on a slice is a misuse; say so and stop.
 - Read-only. The panel never edits, never autofixes, never merges.
+- Do not post the report until the user says to post it. Invoking `/review-panel` is not that yes.
 - One schema, one severity scale, one confidence gate, for every persona. A finding without a line, a SHA and a checked risk is not a finding.
 - Findings are ranked by severity within the Spec and Quality axes, never reranked across them; Spec FAIL is not softened by a clean panel.

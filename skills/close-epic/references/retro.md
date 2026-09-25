@@ -70,11 +70,11 @@ INT_PR=<integration PR url>
 gh pr view "$INT_PR" --json reviews --jq '
   [.reviews[].body | select(startswith("## Verdict:"))] | last // "" |
   { personas: (capture("Personas: (?<p>[^\n]*)") .p // "" | split(", ")),
-    critical:  ([scan("^- #\\d+ [^\n]*")] | length),
+    critical:  ([scan("^- (F|#)\\d+ [^\n]*")] | length),
     dropped:   (capture("Dropped below confidence 80: (?<d>\\d+)") .d // "0" | tonumber) }'
 ```
 
-(Count Critical / Important / Minor by the heading each `- #n` line sits under; the script does this with a small state machine.)
+(Count Critical / Important / Minor by the heading each `- Fn` line sits under, and `- #n` from reports posted before that id change. The script does this with a small state machine.)
 
 Claim-to-PR hours per ticket:
 
