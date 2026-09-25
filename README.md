@@ -1,5 +1,17 @@
 # syn54x/skills
 
+> [!IMPORTANT]
+> **This repo has moved to [syn54x/skills-plus-plus](https://github.com/syn54x/skills-plus-plus).** Every skill here now lives there, alongside Matt Pocock's skills, in one plugin: `skills-plus-plus@syn54x`. This repo is no longer maintained.
+>
+> What changed:
+>
+> - `to-tickets-plus` is gone: its steps are part of `/to-tickets` when the SDD pipeline is on.
+> - `setup-syn54x-skills` now also does Matt's setup (issue tracker, triage labels, domain docs); there is no separate `/setup-matt-pocock-skills` step.
+> - `implement-issue`, `review-pr`, `review-panel`, `close-epic` and `sync-progress` are model-invoked, so `build-epic`'s workers and reviewers can start them. `/implement #N` hands an SDD issue to `implement-issue`.
+> - Skill feedback goes to `syn54x/skills-plus-plus`.
+>
+> To switch: remove this pack and `mattpocock/skills`, install `skills-plus-plus` (`/plugin marketplace add syn54x/skills-plus-plus`, then `/plugin install skills-plus-plus@syn54x`, or `npx skills@latest add syn54x/skills-plus-plus`), and re-run `/setup-syn54x-skills` in each repo. It replaces the routing block and the `sdd-*.yml` plugin IDs in place.
+
 Public [Agent Skills](https://agentskills.io) for Cursor, Claude Code, Codex, and other coding agents. The SDD skills sit on top of [mattpocock/skills](https://github.com/mattpocock/skills): the spec and the plan are GitHub issues, and this repo runs the build. Scaffolding, explanations, and release notes are separate skills.
 
 ## Install
