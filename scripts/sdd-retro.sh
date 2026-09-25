@@ -71,7 +71,7 @@ for line in t.splitlines():
     m=re.match(r"^### (Critical|Important|Minor)",line)
     if m: sec=m.group(1); continue
     if line.startswith("## "): sec=None
-    if sec and re.match(r"^- #\d+ ",line): c[sec]+=1
+    if sec and re.match(r"^- (?:F|#)\d+ ",line): c[sec]+=1
 p=re.search(r"Personas: ([^\n]*)",t); d=re.search(r"Dropped below confidence 80: (\d+)",t)
 print(json.dumps({"personas":[x.strip().split(" ")[0] for x in p.group(1).split(",")] if p else [],
   "critical":c["Critical"],"important":c["Important"],"minor":c["Minor"],"dropped":int(d.group(1)) if d else 0}))')

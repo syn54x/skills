@@ -34,4 +34,4 @@ Run the personas **sequentially**, always-on first, in fresh context each time (
 
 ## Merging, wherever you are
 
-Merging is plain reasoning over the JSON arrays, not another agent: same file, overlapping lines, same failure → one finding with the higher severity, the higher confidence and both persona names. Then the 80 gate, then numbering. Keep the dropped count for the Coverage section.
+Merging is plain reasoning over the JSON arrays, not another agent: same file, overlapping lines, same failure → one finding with the higher severity, the higher confidence and both persona names. Then the 80 gate, then ids `F1`, `F2`, … Never `#1`. Keep the dropped count for the Coverage section.
